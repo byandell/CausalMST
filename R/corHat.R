@@ -12,9 +12,9 @@ corHat <- function(S.hat) {
   Sig.hat[[4]] <- S.hat[c(3, 5, 6), c(3, 5, 6)]
   Cor.hat <- vector(mode = "list", length = 4) 
   for (i in 1 : 4) {
-    tmp <- is.positive.definite(Sig.hat[[i]])
+    tmp <- corpcor::is.positive.definite(Sig.hat[[i]])
     if (!tmp) {
-      Sig.hat[[i]] <- make.positive.definite(Sig.hat[[i]])
+      Sig.hat[[i]] <- corpcor::make.positive.definite(Sig.hat[[i]])
     }
     Cor.hat[[i]] <- cov2cor(Sig.hat[[i]])
   }

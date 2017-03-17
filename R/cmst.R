@@ -13,6 +13,9 @@
 #' @param verbose verbose output if \code{TRUE}
 #' 
 #' @export
+#' @importFrom dplyr tbl_df
+#' @importFrom mnormt pmnorm
+#' @importFrom corpcor is.positive.definite make.positive.definite
 #' 
 cmst <- function(pheno, geno, resp_names, addcov, intcov,
                  method = c("par", "non.par", "joint", "all"),
@@ -23,7 +26,7 @@ cmst <- function(pheno, geno, resp_names, addcov, intcov,
     stop("need at least 2 response names")
   if(nrow(pheno) != nrow(geno))
     stop("pheno and geno must have same number of rows")
-  uname <- unique(c(resp_names, addcov, intcov))
+  uname <- unique(unlist(c(resp_names, addcov, intcov)))
   if(!all(uname %in% names(pheno)))
     stop("some of phenotype or covariate names not in pheno data frame")
   

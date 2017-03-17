@@ -2,7 +2,6 @@
 #' 
 #' This simulates a \code{cross} object with 3 phenotypes where y1 has a causal effect
 #' on both y2 and y3. See vignette for details.
-#' + \epsilon$ and $y_3 = 0.5 \, y_1 + \epsilon$). The length of beta controls the number of phenotypes to be simulated.
 #' 
 #' @param n.ind number of individuals
 #' @param len length(s) of chromosome(s)

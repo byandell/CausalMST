@@ -6,10 +6,9 @@ Title: Causal Model Selection Hypothesis Tests
 Description: Functions to compare causal models
 Maintainer: Brian S. Yandell <byandell@wisc.edu>
 Depends: 
-    stats,
-    lattice, 
-    corpcor,
-    mnormt
+    stats,qtl
+Imports:
+    dplyr
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
