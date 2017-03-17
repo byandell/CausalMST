@@ -282,35 +282,6 @@ mySimulations <- function(
        pval.cit=pval.cit)
 }
 #########################################################################
-SimCrossCausal <- function(n.ind, len, n.mar, beta, add.eff, dom.eff, 
-                           sig2.1 = 1, sig2.2 = 1, eq.spacing = FALSE, 
-                           cross.type = c("bc", "f2"), normalize = FALSE) {
-  n.traits <- length(beta)
-  beta <- matrix(rep(beta, each = n.ind), n.ind, n.traits)
-  Map <- sim.map(len, n.mar, eq.spacing = eq.spacing, include.x = FALSE)
-  Cross <- sim.cross(map = Map, n.ind = n.ind, type = cross.type)
-  mygeno <- pull.geno(Cross)
-  q <- mygeno[, "D1M51"]
-  
-  cross.type <- match.arg(cross.type)
-  if (cross.type == "bc") {
-    add.q <- q - 1.5
-    y1 <- add.q * add.eff + rnorm(n.ind, 0, sqrt(sig2.1))
-  }
-  if (cross.type == "f2") {
-    add.q <- q - 2
-    dom.q <- (1 + add.q) * (1 - add.q) - 0.5
-    y1 <- add.q * add.eff + dom.q * dom.eff + rnorm(n.ind, 0, sqrt(sig2.1))
-  }
-  y <- beta * y1 + matrix(rnorm(n.ind * n.traits, 0, sqrt(sig2.2)), n.ind, n.traits)
-  y <- data.frame(y1, y)
-  names(y) <- paste("y", 1 : (n.traits + 1), sep = "")
-  if (normalize) {
-    apply(y, 2, normal.trans)
-  }
-  Cross$pheno <- y
-  Cross
-}
 ################################################################################
 SimCross1 <- function(n.ind, mu, beta21, add.eff1, dom.eff1, 
                       sig2.1 = 1, sig2.2 = 1, eq.spacing = FALSE, 

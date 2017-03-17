@@ -1,12 +1,17 @@
-Package: qtlhot
-Version: 0.9.0
-Date: 2013-09-18
+Package: CausalMST
+Version: 0.9.1
+Date: 2017-03-16
 Author: Elias Chaibub Neto <echaibub@hotmail.com> and Brian S Yandell <byandell@wisc.edu>
-Title: Inference for QTL Hotspots
-Description: Functions to infer co-mapping trait hotspots and causal models
+Title: Causal Model Selection Hypothesis Tests
+Description: Functions to compare causal models
 Maintainer: Brian S. Yandell <byandell@wisc.edu>
-Depends: stats,qtl,lattice,corpcor,mnormt
+Depends: 
+    stats,
+    lattice, 
+    corpcor,
+    mnormt
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
 URL: http://www.stat.wisc.edu/~yandell/statgen
+RoxygenNote: 6.0.1
