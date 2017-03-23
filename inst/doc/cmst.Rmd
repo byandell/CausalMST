@@ -38,6 +38,9 @@ y1.z <- z + sqrt(0.4) * rnorm(n_ind)
 y2.y1 <- 0.5 * y1.z + sqrt(0.1) * rnorm(n_ind) 
 ```
 
+The four models to be compared are $M_1$ ($z \rightarrow y_1 \rightarrow y_2$ as in the above example), $M_2$ ($z \rightarrow y_2 \rightarrow y_1$), $M_3$ ($y_1 \leftarrow z \rightarrow y2$), and $M_4$ as in Chaibub Neto et al. (2012) and returns concise tables along with summary statistics.
+Recall that $M_4$ is similar to $M_3$ allows extra dependence between y1 and y2 (with the 3 submodels of causal direction or association among $y_1$ and $y_2$ being likelihood equivalent).
+
 ```{r}
 dat <- data.frame(z = z,
                    y1 = y1.z, 
