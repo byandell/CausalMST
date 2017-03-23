@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "")
 ```
 
 ## Motivation
@@ -21,18 +21,64 @@ This tutorial illustrates the basic functionality of the CMST routines in the `q
 
 Here, we illustrate the basic functionality of the CMST routines in the `R/qtlhot` package in a toy simulated example.
 
-```{r }
+```{r}
 library(CausalMST)
 ``` 
 
-This package was developed with quantitative trait loci in mind. However, its use is not limited to such experiments, which is why we are now spawning a separate package. The example below is build
-from an R/qtl cross object for illustration, but the \textt{cmst` function is set up for arbitrary object, with the \code{geno` as driver.
+This package was developed with quantitative trait loci in mind. However, its use is not limited to such experiments, which is why we are now spawning a separate package. The first example uses made up data with a simple model shown below.
+
+## CMST with small example
+
+Consider two outcomes $y_1, y_2$ with residual variances 0.4 for $y_1$ and 0.1 for the other phenotype. We set up the causal relations $y_1 = z + \epsilon_1$ and $y_2 = 0.5 \, y_1 + \epsilon_2$.
+
+```{r}
+n_ind <- 1000
+z <- sample(0:1, n_ind, replace = TRUE, prob = rep(0.5,2))
+y1.z <- z + sqrt(0.4) * rnorm(n_ind)
+y2.y1 <- 0.5 * y1.z + sqrt(0.1) * rnorm(n_ind) 
+```
+
+```{r}
+dat <- data.frame(z = z,
+                   y1 = y1.z, 
+                   y2 = y2.y1)
+```
+
+```{r}
+library(ggplot2)
+grid::grid.newpage()
+grid::pushViewport(
+  grid::viewport(
+    layout = grid::grid.layout(ncol = 2)))
+
+print(ggplot(dat, aes(x=y1.z, y=y2.y1, col=factor(z))) + 
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm", se = FALSE),
+  vp = grid::viewport(layout.pos.row = 1,
+                      layout.pos.col = 1))
+print(ggplot(dat, aes(y=y1.z, x=y2.y1, col=factor(z))) + 
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm", se = FALSE),
+  vp = grid::viewport(layout.pos.row = 1,
+                      layout.pos.col = 2))
+```
+
+```{r}
+(result <- cmst(driver = as.matrix(dat$z), outcomes = dat[-1]))
+```
+
+The `result` shows that the correct model $M_1$ ($y_2\leftarrow y_1 \leftarrow z$) has the smallest p-value among the four models. The `nonpar` tests do the best here since the others assume normality whereas, for instance, the outcome $y_1$ is bimodal due to the influence of the qualitative driver $z$.
+
+### CMST using QTL data
+
+The second exampleis built
+from an R/qtl cross object for illustration with the geno` as driver.
+
+We first use the `SimCrossCausal` function to simulate a `cross` object with 3 phenotypes, $y_1$, $y_2$ and $y_3$, where $y_1$ has a causal effect on both $y_2$ and $y_3$. The simulated cross data set, `Cross`, is composed of: 100 individuals (`n.ind = 100}); 3 chromosomes of length 100cM (`len = rep(100, 3)`); 101 unequally spaced markers per chromosome (`n.mar = 101` and `eq.spacing = FALSE`); additive genetic effect set to 1 (`add.eff = 1`); dominance genetic effect set to 0 (`dom.eff = 0}); residual variances for $y_1$ (`sig2.1`) and the other phenotypes (`sig2.2`) set to 0.4 and 0.1, respectively; backcross cross type (`cross.type = "bc"`); and phenotype data transformed to normal scores (`normalize = TRUE`). The argument `beta = rep(0.5, 2)}, represents the causal effect of $y_1$ on the other phenotypes (i.e., coefficients of the regressions of $y_2 = 0.5 \, y_1 + \epsilon$ and $y_3 = 0.5 \, y_1 + \epsilon$). The length of beta controls the number of phenotypes to be simulated.
 
 ```{r}
 library(qtl)
 ```
-
-We first use the `SimCrossCausal` function to simulate a `cross` object with 3 phenotypes, $y_1$, $y_2$ and $y_3$, where $y_1$ has a causal effect on both $y_2$ and $y_3$. The simulated cross data set, `Cross`, is composed of: 100 individuals (`n.ind = 100}); 3 chromosomes of length 100cM (`len = rep(100, 3)`); 101 unequally spaced markers per chromosome (`n.mar = 101` and `eq.spacing = FALSE`); additive genetic effect set to 1 (`add.eff = 1`); dominance genetic effect set to 0 (`dom.eff = 0}); residual variances for $y_1$ (`sig2.1`) and the other phenotypes (`sig2.2`) set to 0.4 and 0.1, respectively; backcross cross type (`cross.type = "bc"`); and phenotype data transformed to normal scores (`normalize = TRUE`). The argument `beta = rep(0.5, 2)}, represents the causal effect of $y_1$ on the other phenotypes (i.e., coefficients of the regressions of $y_2 = 0.5 \, y_1 + \epsilon$ and $y_3 = 0.5 \, y_1 + \epsilon$). The length of beta controls the number of phenotypes to be simulated.
 
 ```{r }
 set.seed(987654321)
@@ -53,101 +99,15 @@ We compute the genotype conditional probabilities using Haldane's map function, 
 
 ```{r }
 CMSTCross <- qtl::calc.genoprob(CMSTCross, step = 1)
-``` 
-
-We perform QTL mapping using Haley-Knott regression (Haley and Knott 1992), and summarize the results for the 3 phenotypes. Figure \ref{lod.profiles} presents the LOD score profiles for all 3 phenotypes. The black, blue and red curves represent the LOD profiles of phenotypes $y_1$, $y_2$ and $y_3$, respectively.
-
-```{r }
-Scan <- qtl::scanone(CMSTCross, pheno.col = 1 : 3, method = "hk")
-summary(Scan[, c(1, 2, 3)], thr = 3)
-summary(Scan[, c(1, 2, 4)], thr = 3)
-summary(Scan[, c(1, 2, 5)], thr = 3)
-``` 
-
-```{r label=lodprofiles,width=6,height=6,fig=TRUE}
-plot(Scan, lodcolumn = 1 : 3, ylab = "LOD")
-``` 
-
-LOD score profiles for phenotypes $y_1$ (black curve), $y_2$ (blue curve) and $y_3$ (red curve).
-
-Phenotypes $y_1$ and $y_2$ map to exactly same QTL at position 55 cM on chromosome 1. Phenotype $y_3$ maps to a QTL at position 55.5 cM. Whenever two phenotypes map to close, but not exactly identical, positions we are faced with the question of which QTL to use as causal anchor. Instead of making a (sometimes) arbitrary choice, our approach is to compute the joint LOD profile of both phenotypes and use the QTL detected by this joint mapping approach as the causal anchor. This is pursued in package R/qtlhot.
-
-Now, we fit our causal model selection tests for phenotypes $y_1$ and $y_2$ using the `CMSTtests` function. The `Q.chr` and `Q.pos` arguments specify the chromosome and position (in cM) of the QTL to be used as a causal anchor. The argument `method` specify which version of the CMST test should be used. The options `"par"`, `"non.par"` and `"joint"` represent, respectively, the parametric, non-parametric, joint parametric versions of the CMST test. The option `"all"} fits all three versions. The `penalty` argument specifies whether we should test statistics based on the AIC (`"aic"`), BIC (`"bic"`), or both (`"both"`) penalties. In this particular call we computed all 3 versions using both penalties fitting 6 separate CMST tests.
-
-```{r }
 nms <- names(CMSTCross$pheno)
-out1 <- CMSTtests(CMSTCross,
-                  pheno1 = nms[1],
-                  pheno2 = nms[2],
-                  Q.chr = 1,
-                  Q.pos = 55,
-                  addcov1 = NULL,
-                  addcov2 = NULL,
-                  intcov1 = NULL,
-                  intcov2 = NULL,
-                  method = "all",
-                  penalty = "both")
-``` 
-
-The output of the `CMSTtests` function is composed of a list with 17 elements. It returns the names of the phenotypes and number of individuals (`n.ind`):
-
-```{r }
-str(out1)
-``` 
-
-The log-likelihood scores (`loglik`) of models $M_1$, $M_2$, $M_3$, and $M_4$ (see Chaibub Neto et al. 2012 for details):
-
-```{r }
-out1$loglik
-``` 
-
-The dimensions of the models (`model.dim`):
-
-```{r }
-out1$model.dim
-``` 
-
-The $R^2$ values (`R2`) relative to the regression of phenotypes 1 and 2 on the causal anchor:
-
-```{r }
-out1$R2
-``` 
-
-The covariance matrix (`S.hat`) with the variances and covariances of the penalized log-likelihood ratios of models $M_1 \times M_2$, $M_1 \times M_3$, $M_1 \times M_4$, $M_2 \times M_3$, $M_2 \times M_4$, and $M_3 \times M_4$:
-
-```{r }
-out1$S.hat
-``` 
-
-The BIC scores (`BICs`):
-
-```{r }
-out1$BICs
-``` 
-
-The BIC-based penalized log-likelihood test statistics (`Z.bic`):
-
-```{r }
-out1$Z.bic
-``` 
-
-The BIC-based model selection p-values for the parametric CMST (`pvals.p.BIC`), non-parametric CMST (`pvals.np.BIC`) and joint parametric CMST (`pvals.j.BIC`):
-
-The small values of the first p-values across all 3 CMST test versions, suggests that model $M_1$ is significantly closer to the true model than models $M_2$, $M_3$ and $M_4$.
-
-```{r }
-out1[c("pvals.p.BIC","pvals.np.BIC","pvals.j.BIC")]
-``` 
-
-The analogous AIC-based quantities:
-
-```{r }
-out1[c("AICs","Z.aic","pvals.p.BIC","pvals.np.BIC","pvals.j.BIC")]
 ``` 
 
 ### Direct use of cmst
 
-The 
+The helper routine `qtl2cmst` will convert QTL data into a driver, outcomes and covariates.
+We at the moment take advantage of knowing were the QTL lies.
+
+Here, we perform the causal model selection tests for phenotypes $y_1$ and $y_2$ using the `qtl2cmst` and `cmst` functions. There is a wrapper for these called `CMSTtests` (not shown). The `Q.chr` and `Q.pos` arguments specify the chromosome and position (in cM) of the QTL to be used as a causal anchor. The argument `method` specify which version of the CMST test should be used. The options `"par"`, `"non.par"` and `"joint"` represent, respectively, the parametric, non-parametric, joint parametric versions of the CMST test. The option `"all"` fits all three versions. The `penalty` argument specifies whether we should test statistics based on the AIC (`"aic"`), BIC (`"bic"`), or both (`"both"`) penalties. In this particular call we computed all 3 versions using both penalties fitting 6 separate CMST tests.
 
 ```{r}
 setup <- qtl2cmst(CMSTCross,
@@ -157,31 +117,53 @@ setup <- qtl2cmst(CMSTCross,
                   Q.pos = 55)
 ```
 
+Here is the CMST performed on the converted data.
+
 ```{r}
-cmst(setup$pheno, setup$geno, 
-       setup$resp_names, 
+cmst(setup$driver, setup$outcomes, 
+       setup$covariates, 
        setup$addcov, setup$intcov, 
        method = "all", penalty = "both")
 ```
+
+## QTL mapping and CMST tests
+
+We perform QTL mapping using Haley-Knott regression (Haley and Knott 1992), and summarize the results for the 3 phenotypes. Figure \ref{lod.profiles} presents the LOD score profiles for all 3 phenotypes. The black, blue and red curves represent the LOD profiles of phenotypes $y_1$, $y_2$ and $y_3$, respectively.
+
+```{r }
+Scan <- qtl::scanone(CMSTCross, pheno.col = 1 : 3, method = "hk")
+summary(Scan, thr = 3, format = "allpheno")
+``` 
+
+
+```{r label=lodprofiles,width=6,height=6,fig=TRUE}
+plot(Scan, lodcolumn = 1 : 3, ylab = "LOD")
+``` 
+
+LOD score profiles for phenotypes $y_1$ (black curve), $y_2$ (blue curve) and $y_3$ (red curve).
+
+Phenotypes $y_1$ and $y_2$ map to exactly the same QTL at position `r round(summary(Scan, 3, "allpheno")[1,"pos"], 1)` cM on chromosome 1. Phenotype $y_3$ maps to a QTL at position `r round(summary(Scan, 3, "allpheno")[2,"pos"], 1)` cM. Whenever two phenotypes map to nearby, but not exactly identical, positions we are faced with the question of which QTL to use as causal anchor. Instead of making a (sometimes) arbitrary choice, our approach is to compute the joint LOD profile of both phenotypes and use the QTL detected by this joint mapping approach as the causal anchor. This is pursued in package `R/qtlhot`.
 
 ### Multiple phenotypes
 
 The function `CMSTtests` also computes CMST tests of a single phenotype against a list of phenotypes. Its output is less detailed though. In this particular call we test $y_1$ against $y_2$ and $y_3$.
 
-```{r }
-out2 <- CMSTtests(CMSTCross,
+```{r}
+setup <- qtl2cmst(CMSTCross,
                   pheno1 = nms[1],
-                  pheno2 = nms[-1],
+                  pheno2 = nms[2:3],
                   Q.chr = 1,
-                  Q.pos = 55.5,
-                  addcov1 = NULL,
-                  addcov2 = NULL,
-                  intcov1 = NULL,
-                  intcov2 = NULL,
-                  method = "all",
-                  penalty = "both")
-out2
-``` 
+                  Q.pos = 55)
+```
+
+Here is the CMST performed on the converted data.
+
+```{r}
+cmst(setup$driver, setup$outcomes, 
+       setup$covariates, 
+       setup$addcov, setup$intcov, 
+       method = "all", penalty = "both")
+```
 
 ## Other Functions
 

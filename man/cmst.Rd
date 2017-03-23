@@ -2,17 +2,16 @@
 % Please edit documentation in R/cmst.R
 \name{cmst}
 \alias{cmst}
-\title{CMST Tests for genotype and phenotypes with covariates}
+\title{Causal Model Selection Tests for outcomes given driver and covariates}
 \usage{
-cmst(pheno, geno, resp_names, addcov, intcov, method = c("par", "non.par",
-  "joint", "all"), penalty = c("bic", "aic", "both"), verbose = FALSE)
+cmst(driver, outcomes, covariates = NULL, addcov = NULL, intcov = NULL,
+  method = c("par", "non.par", "joint", "all"), penalty = c("bic", "aic",
+  "both"), verbose = FALSE)
 }
 \arguments{
-\item{pheno}{data frame with phenotypes and covariates}
+\item{driver}{data frame with drivers}
 
-\item{geno}{data frame with QTL genotypes}
-
-\item{resp_names}{response names}
+\item{outcomes}{data frame with outcomes}
 
 \item{addcov, intcov}{additive and interactive covariate names for responses}
 
@@ -21,9 +20,22 @@ cmst(pheno, geno, resp_names, addcov, intcov, method = c("par", "non.par",
 \item{penalty}{type of information criteria penalty (for BIC or AIC)}
 
 \item{verbose}{verbose output if \code{TRUE}}
+
+\item{resp_names}{response names}
 }
 \description{
-Run CMST tests with one QTL and 2 or more phenotypes.
-The \code{geno} is the driver for phenotype responses, with covariates acting on responses.
-The \code{resp_names}, \code{addcov} and \code{intcov} names must all be valid names in the \code{pheno} data frame.
+Run CMST tests the causal direction between the first outcome \code{(y1)} and all other outcomes \code{(y2, ...)},
+adjusting for the driver and covariates. The models tested (ignoring covariates and noise) are:
+\itemize{
+\item{\code{M1.y2.y1.z}} : \code{y2 <- y1 <- z}
+\item{\code{M2.y1.y2.z}} : \code{y1 <- y2 <- z}
+\item{\code{M3.y1.z.y2}} : \code{y1 <- z -> y2}
+\item{\code{M4.y12.z}} : \code{y1 <- z -> y2} and \code{y1 <-> y2}
+}
+in which the arrows indicate direction of causality. For \code{M4}, the directionality between \code{y1} and \code{y2} is ambiguous.
+The noise on outcomes \code{yi} is assumed to be normal.
+The driver \code{z} is assumed to be causal for one or more outcomes \code{(y1, y2, ...)}, and may be categorical or continuous.
+The covariates \code{X}, qualitative or quantitative, may act additively or be interactive with the driver.
+The \code{driver} is the driver for outcomes, with covariates acting on outcomess.
+The \code{resp_names}, \code{addcov} and \code{intcov} names must all be valid names in the \code{outcomes} data frame.
 }

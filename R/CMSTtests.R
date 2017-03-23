@@ -26,48 +26,13 @@ CMSTtests <- function(cross,
                       penalty = c("both", "bic", "aic"),
                       verbose = FALSE)
 {
-  if(length(pheno2) > 1)
-    return(CMSTtestsList(cross, pheno1, pheno2, Q.chr, Q.pos,
-                         addcov1, addcov2, intcov1, intcov2, 
-                         method, penalty, verbose))
-  
   setup <- qtl2cmst(cross, pheno1, pheno2,
                     Q.chr, Q.pos,
                     addcov1, addcov2, 
                     intcov1, intcov2)
   
-  cmst(setup$pheno, setup$geno, 
-       setup$resp_names, 
+  cmst(setup$driver, setup$outcomes, 
+       setup$covariates, 
        setup$addcov, setup$intcov, 
        method, penalty)
 }
-CMSTtestsList <- function(cross, 
-                          pheno1, 
-                          pheno2,
-                          Q.chr,
-                          Q.pos,
-                          addcov1 = NULL, 
-                          addcov2 = NULL, 
-                          intcov1 = NULL, 
-                          intcov2 = NULL, 
-                          method = c("par", "non.par", "joint", "all"),
-                          penalty = c("bic", "aic", "both"),
-                          verbose = TRUE)
-{
-  if(length(pheno2) == 1)
-    return(CMSTtests(cross, pheno1, pheno2, Q.chr, Q.pos,
-                     addcov1, addcov2, intcov1, intcov2, 
-                     method, penalty, verbose))
-  
-  setup <- qtl2cmst(cross, pheno1, pheno2,
-                    Q.chr, Q.pos,
-                    addcov1, addcov2, 
-                    intcov1, intcov2)
-  
-  cmsts(setup$pheno, setup$geno, 
-        setup$resp_names, 
-        setup$addcov, setup$intcov, 
-        method, penalty)
-}
-
-

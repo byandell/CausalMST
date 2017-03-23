@@ -28,22 +28,35 @@ qtl2cmst <- function(cross,
   resp_names <- c(pheno1, pheno2)
   addcov <- list(addcov1, addcov2)
   intcov <- list(intcov1, intcov2)
+  unames <- unique(unlist(c(addcov, intcov)))
   
-  # Genotype matrix.
-  geno <- qtlMatrix(cross, Q.chr, Q.pos)
-  
-  # Phenotype and covariate matrix.  
-  pheno_names <- unique(unlist(c(resp_names, addcov, intcov)))
-  pheno <- cross$pheno[, pheno_names]
   # Reduce to individuals with no missing data.
-  to.drop <- as.vector(attr(na.omit(cross$pheno[, pheno_names]), 
+  to.drop <- as.vector(attr(na.omit(cross$pheno[, c(resp_names,unames)]), 
                             "na.action"))
   if (!is.null(to.drop)) {
     cross <- subset(cross, ind = -to.drop)
   }
-  list(pheno = pheno, 
-       geno = geno, 
-       resp_names = resp_names, 
+
+  # Genotype matrix.
+  geno <- qtlMatrix(cross, Q.chr, Q.pos)
+  # Check for missing genotypes, and drop individuals with missing values.
+  to.drop <- apply(geno, 1, function(x) any(is.na(x)))
+  if(any(to.drop)) {
+    geno <- geno[!do.drop, ]
+    cross <- subset(cross, ind = !to.drop)
+  }
+  
+  # Outcomes and covariates matrices.  
+  outcomes <- cross$pheno[, resp_names, drop = FALSE]
+  if(!is.null(unames)) {
+    covariates <- cross$pheno[, unames, drop = FALSE]
+  } else {
+    covariates <- NULL
+  }
+  
+  list(driver = geno, 
+       outcomes = outcomes, 
+       covariates = covariates, 
        addcov = addcov, 
        intcov = intcov)
 }

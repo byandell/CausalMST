@@ -1,3 +1,4 @@
+#' @export
 normal.trans <- function (x) 
 {
   x <- rank(x, na.last = "keep")

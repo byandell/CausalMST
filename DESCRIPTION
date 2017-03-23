@@ -1,6 +1,6 @@
 Package: CausalMST
-Version: 0.9.1
-Date: 2017-03-16
+Version: 0.9.2
+Date: 2017-03-22
 Author: Elias Chaibub Neto <echaibub@hotmail.com> and Brian S Yandell <byandell@wisc.edu>
 Title: Causal Model Selection Hypothesis Tests
 Description: Functions to compare causal models

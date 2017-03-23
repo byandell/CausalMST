@@ -1,6 +1,6 @@
-GetLogLik <- function(geno, pheno, resp, addcov, intcov) {
-  X <- CreateDesignMatrix(geno, pheno, addcov, intcov)
-  logLik_calcs(pheno[[resp]], X)
+GetLogLik <- function(driver, passengers, resp_name, addcov, intcov) {
+  X <- CreateDesignMatrix(driver, passengers, addcov, intcov)
+  logLik_calcs(passengers[[resp_name]], X)
 }
 
 logLik_calcs <- function(y, X) {

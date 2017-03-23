@@ -1,11 +1,22 @@
-#' CMST Tests for genotype and phenotypes with covariates
+#' Causal Model Selection Tests for outcomes given driver and covariates
 #' 
-#' Run CMST tests with one QTL and 2 or more phenotypes.
-#' The \code{geno} is the driver for phenotype responses, with covariates acting on responses.
-#' The \code{resp_names}, \code{addcov} and \code{intcov} names must all be valid names in the \code{pheno} data frame.
+#' Run CMST tests the causal direction between the first outcome \code{(y1)} and all other outcomes \code{(y2, ...)},
+#' adjusting for the driver and covariates. The models tested (ignoring covariates and noise) are:
+#' \itemize{
+#' \item{\code{M1.y2.y1.z}} : \code{y2 <- y1 <- z}
+#' \item{\code{M2.y1.y2.z}} : \code{y1 <- y2 <- z}
+#' \item{\code{M3.y1.z.y2}} : \code{y1 <- z -> y2}
+#' \item{\code{M4.y12.z}} : \code{y1 <- z -> y2} and \code{y1 <-> y2}
+#' }
+#' in which the arrows indicate direction of causality. For \code{M4}, the directionality between \code{y1} and \code{y2} is ambiguous.
+#' The noise on outcomes \code{yi} is assumed to be normal.
+#' The driver \code{z} is assumed to be causal for one or more outcomes \code{(y1, y2, ...)}, and may be categorical or continuous.
+#' The covariates \code{X}, qualitative or quantitative, may act additively or be interactive with the driver.
+#' The \code{driver} is the driver for outcomes, with covariates acting on outcomess.
+#' The \code{resp_names}, \code{addcov} and \code{intcov} names must all be valid names in the \code{outcomes} data frame.
 #' 
-#' @param pheno data frame with phenotypes and covariates
-#' @param geno data frame with QTL genotypes
+#' @param outcomes data frame with outcomes
+#' @param driver data frame with drivers
 #' @param resp_names response names
 #' @param addcov,intcov additive and interactive covariate names for responses
 #' @param method method for CMST test (parametric, non-parametric, joint or all three); can provide more than one value.
@@ -17,22 +28,39 @@
 #' @importFrom mnormt pmnorm
 #' @importFrom corpcor is.positive.definite make.positive.definite
 #' 
-cmst <- function(pheno, geno, resp_names, addcov, intcov,
-                 method = c("par", "non.par", "joint", "all"),
-                 penalty = c("bic", "aic", "both"),
-                 verbose = FALSE) {
+cmst <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
+                  method = c("par", "non.par", "joint", "all"),
+                  penalty = c("bic", "aic", "both"),
+                  verbose = FALSE) {
   
+  if(any(is.na(c(driver))) | 
+     any(is.na(c(outcomes))))
+    stop("missing values not allowed")
+  if(!is.null(covariates)) {
+    if(any(is.na(c(covariates))))
+      stop("missing values not allowed")
+  }
+  
+  resp_names <- names(outcomes)
   if(length(resp_names) < 2)
     stop("need at least 2 response names")
-  if(nrow(pheno) != nrow(geno))
-    stop("pheno and geno must have same number of rows")
-  uname <- unique(unlist(c(resp_names, addcov, intcov)))
-  if(!all(uname %in% names(pheno)))
-    stop("some of phenotype or covariate names not in pheno data frame")
-  
-  if(length(resp_names) > 2)
-    return(cmsts(pheno, geno, resp_names, addcov, intcov,
-                 method, penalty, verbose))
+  n_ind <- nrow(outcomes)
+  n_drv <- nrow(driver)
+  n_cov <- nrow(covariates)
+  if(n_ind != n_drv)
+    stop("driver, outcomes and covariates must have same number of rows")
+  if(!is.null(covariates)) {
+    if(n_ind != n_cov | n_drv != n_cov)
+      stop("driver, outcomes and covariates must have same number of rows")
+  }
+  uname <- unique(unlist(c(addcov, intcov)))
+  if(!is.null(uname)) {
+    if(!all(uname %in% names(covariates)))
+      stop("some of covariate names not in covariates data frame")
+    covariates <- covariates[, uname, drop = FALSE]
+  } else {
+    covariates <- NULL
+  }
   
   method <- match.arg(method, several.ok = TRUE)
   if("all" %in% method)
@@ -41,38 +69,111 @@ cmst <- function(pheno, geno, resp_names, addcov, intcov,
   if("both" %in% penalty)
     penalty <- c("bic", "aic")
   
+  ntests <- length(resp_names) - 1
+  
+  aux <- vector(mode = "list", length = ntests)
+  nms <- names(aux) <- paste(resp_names[1], resp_names[-1], sep = "_")
+  for(k in 1 : ntests) {
+    if(verbose)
+      cat("outcomes2 = ", k, "\n")   
+    aux[[k]] <- cmst1(driver, outcomes[, c(1, 1 + k)], covariates, 
+                     addcov, intcov, 
+                     method, penalty)
+  }
+  
+  models <- model_setup()
+  
+  # Rearrange results.
+
+  out <- vector(mode = "list", length = 6)
+  names(out) <- c("pvals", "AIC", "BIC", "AIC.Z", "BIC.Z", "R2")
+
+  # Now populate the list
+  out$pvals <- vector(mode = "list", length = length(nms))
+  names(out$pvals) <- nms
+  pval_names <- 
+    paste(rep(c("BIC","AIC"), 3),
+          rep(c("par","nonpar","joint"), each = 2),
+          sep = ".")
+  names(pval_names) <- 
+    paste(rep("pvals", 6),
+          rep(c("p","np","j"), each = 2),
+          rep(c("BIC","AIC"), 3),
+          sep = ".")
+  out$pvals <- lapply(aux, function(x, pval_names) {
+    pvals <- grep("pvals", names(x))
+    out <- t(as.data.frame(x[pvals]))
+    rownames(out) <- pval_names[rownames(out)]
+    out
+  }, pval_names)
+  for(stat in c("AIC","BIC","AIC.Z","BIC.Z")) {
+    out[[stat]] <- t(sapply(aux, function(x, stat) x[[stat]], stat))
+    rownames(out[[stat]]) <- nms
+  }
+  out$R2 <- t(sapply(aux, function(x) x$R2))
+  rownames(out$R2) <- nms
+  
+  class(out) <- c("cmst", class(out))
+  out
+}
+#' @export
+print.cmst <- function(x, ...) {
+  cat("\nCausal Model Select Test p-values by outcome pair\n")
+  for(outcome_pair in names(x$pvals)) {
+    cat(outcome_pair, "\n")
+    print(x$pvals[[outcome_pair]])
+  }
+  for(IC in c("AIC","BIC")) {
+    if(!is.null(x$AIC)) {
+      cat("\n", IC, "statistics\n")
+      print(x[[IC]])
+      print(x[[paste0(IC, ".Z")]])
+    }
+  }
+  cat("\nExplained variation (R2)")
+  print(x$R2)
+  invisible()
+}
+
+cmst1 <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
+                 method = c("par", "non.par", "joint", "all"),
+                 penalty = c("bic", "aic", "both")) {
+  
+  resp_names <- names(outcomes)
+  if(length(resp_names) != 2)
+    stop("only two outcomes for cmst1 call")
+  
+  # Outcomes and covariates shift around. Combine all as passengers for convenience.
+  passengers <- outcomes
+  if(!is.null(covariates))
+    passengers <- cbind(outcomes, covariates)
+  
   # log.lik.1 #
   ll_list <- list()
-  ll_list[["y1.q"]] <-   
-    GetLogLik(geno, pheno, resp_names[1], addcov[[1]], intcov[[1]])
-  ll_list[["y2.q"]] <-   
-    GetLogLik(geno, pheno, resp_names[2], addcov[[2]], intcov[[2]])
+  ll_list[["y1.z"]] <-   
+    GetLogLik(driver, passengers, resp_names[1], addcov[[1]], intcov[[1]])
+  ll_list[["y2.z"]] <-   
+    GetLogLik(driver, passengers, resp_names[2], addcov[[2]], intcov[[2]])
   ll_list[["y1.y2"]] <-  
-    GetLogLik(NULL, pheno, resp_names[1], c(addcov[[1]], resp_names[2]), intcov[[1]])
+    GetLogLik(NULL, passengers, resp_names[1], c(addcov[[1]], resp_names[2]), intcov[[1]])
   ll_list[["y2.y1"]] <-  
-    GetLogLik(NULL, pheno, resp_names[2], c(addcov[[2]], resp_names[1]), intcov[[2]])
+    GetLogLik(NULL, passengers, resp_names[2], c(addcov[[2]], resp_names[1]), intcov[[2]])
   ll_list[["y2.y1g"]] <- 
-    GetLogLik(geno, pheno, resp_names[2], c(addcov[[2]], resp_names[1]), intcov[[2]])
+    GetLogLik(driver, passengers, resp_names[2], c(addcov[[2]], resp_names[1]), intcov[[2]])
   
-  models <- dplyr::tbl_df(matrix(c(
-    "M1.y2.y1.q", "y1.q", "y2.y1",
-    "M2.y1.y2.q", "y2.q", "y1.y2",
-    "M3.y1.q.y2", "y2.q", "y1.q",
-    "M4.y12.q",   "y1.q", "y2.y1g"),
-    4, 3, byrow = TRUE))
-  names(models) <- c("model","first","second")
+  models <- model_setup()
   
   R2 <- rep(0,2)
   names(R2) <- models$first[1:2]
   for(i in 1:2) {
-    TSS <- sum((pheno[[resp_names[i]]] - 
-                  mean(pheno[[resp_names[i]]]))^2)
+    TSS <- sum((outcomes[[resp_names[i]]] - 
+                  mean(outcomes[[resp_names[i]]]))^2)
     R2[models$first[i]] <- 1 - 
       (ll_list[[models$first[i]]]$RSS / TSS)
   }
-
+  
   loglik <- model.dim <- rep(0,4)
-  vec.logLik <- matrix(0, nrow(pheno), 4)
+  vec.logLik <- matrix(0, n_ind, 4)
   names(loglik) <- names(model.dim) <- colnames(vec.logLik) <- models$model
   for(i in 1:4) {
     loglik[models$model[i]] <- 
@@ -85,11 +186,11 @@ cmst <- function(pheno, geno, resp_names, addcov, intcov,
       ll_list[[models$first[i]]]$vec.log.lik + 
       ll_list[[models$second[i]]]$vec.log.lik
   }
-
+  
   out <- list(resp = resp_names,
               addcov = addcov,
               intcov = intcov,
-              n.ind = nrow(pheno),
+              n.ind = n_ind,
               loglik = loglik,  
               model.dim = model.dim, 
               R2 = R2,
@@ -103,21 +204,21 @@ cmst <- function(pheno, geno, resp_names, addcov, intcov,
     x
   }
   if("bic" %in% penalty & ("par" %in% method | "joint" %in% method)) {
-    out$BICs <- calcBICs(out$n.ind, model.dim, loglik)
-    Z.bic <- calcZ(out$S.hat, out$BICs, out$n.ind)
-    out$Z.bic <- tmpfn(Z.bic)
+    out$BIC <- calcBICs(out$n.ind, model.dim, loglik)
+    BIC.Z <- calcZ(out$S.hat, out$BIC, out$n.ind)
+    out$BIC.Z <- tmpfn(BIC.Z)
   }
   if("aic" %in% penalty & ("par" %in% method | "joint" %in% method)) {
-    out$AICs <- calcAICs(out$n.ind, model.dim, loglik)
-    Z.aic <- calcZ(out$S.hat, out$AICs, out$n.ind)
-    out$Z.aic <- tmpfn(Z.aic)
+    out$AIC <- calcAICs(out$n.ind, model.dim, loglik)
+    AIC.Z <- calcZ(out$S.hat, out$AIC, out$n.ind)
+    out$AIC.Z <- tmpfn(AIC.Z)
   }
   
   if("par" %in% method) {
     if("bic" %in% penalty)
-      out$pvals.p.BIC <- ParametricIUCMST(Z.bic)
+      out$pvals.p.BIC <- ParametricIUCMST(BIC.Z)
     if("aic" %in% penalty)
-      out$pvals.p.AIC <- ParametricIUCMST(Z.aic)
+      out$pvals.p.AIC <- ParametricIUCMST(AIC.Z)
   }  
   if("non.par" %in% method) {
     if("bic" %in% penalty)
@@ -128,57 +229,25 @@ cmst <- function(pheno, geno, resp_names, addcov, intcov,
   if("joint" %in% method) {
     Cor.hat <- corHat(out$S.hat)
     if("bic" %in% penalty)
-      out$pvals.j.BIC <- ParametricJointCMST(Z.bic, Cor.hat)
+      out$pvals.j.BIC <- ParametricJointCMST(BIC.Z, Cor.hat)
     if("aic" %in% penalty)
-      out$pvals.j.AIC <- ParametricJointCMST(Z.aic, Cor.hat) 
+      out$pvals.j.AIC <- ParametricJointCMST(AIC.Z, Cor.hat) 
   }
+  pvals <- grep("pvals", names(out))
+  out[pvals] <- lapply(out[pvals], function(x,m) {
+    names(x) <- m
+    x
+  }, models$model)
+  
   out
 }
-cmsts <- function(pheno, geno, resp_names, addcov, intcov,
-                  method, penalty, verbose = FALSE) {
-  
-  ntests <- length(resp_names) - 1
-  
-  aux <- vector(mode = "list", length = ntests)
-  for(k in 1 : ntests) {
-    if(verbose)
-      cat("pheno2 = ", k, "\n")   
-    aux[[k]] <- cmst(pheno, geno, 
-                     resp_names[c(1, 1 + k)], 
-                     addcov, intcov, 
-                     method, penalty)
-  }
-  
-  # Rearrange results.
+model_setup <- function() {
   models <- dplyr::tbl_df(matrix(c(
-    "M1.y2.y1.q", "y1.q", "y2.y1",
-    "M2.y1.y2.q", "y2.q", "y1.y2",
-    "M3.y1.q.y2", "y2.q", "y1.q",
-    "M4.y12.q",   "y1.q", "y2.y1g"),
+    "M1.y2.y1.z", "y1.z", "y2.y1",
+    "M2.y1.y2.z", "y2.z", "y1.y2",
+    "M3.y1.z.y2", "y2.z", "y1.z",
+    "M4.y12.z",   "y1.z", "y2.y1g"),
     4, 3, byrow = TRUE))
   names(models) <- c("model","first","second")
-  
-  nms <- paste(resp_names[1], resp_names[-1], sep = "_")
-  pval.nms <- paste("pval", 1:4, sep = ".")
-  z.names <- c("z.12", "z.13", "z.14", "z.23", "z.24", "z.34")
-  AIC.nms <- c(paste("AIC", 1:4, sep = "."), z.names)
-  BIC.nms <- c(paste("BIC", 1:4, sep = "."), z.names)
-  
-  out <- vector(mode = "list", length = 9)
-  names(out) <- c("R2s", "AIC.stats", "BIC.stats", 
-                  "pvals.j.BIC", "pvals.p.BIC", "pvals.np.BIC",
-                  "pvals.j.AIC", "pvals.p.AIC", "pvals.np.AIC")
-
-  # Now populate the list
-  out$AIC.stats <- t(sapply(aux, function(x) c(x$AICs, x$Z.aic)))
-  out$BIC.stats <- t(sapply(aux, function(x) c(x$BICs, x$Z.bic)))
-  rownames(out$AIC.stats) <- rownames(out$BIC.stats) <- nms
-  for(i in names(out)[c(1,4:9)]) {
-    if(!is.null(aux[[1]][[i]])) {
-      out[[i]] <- t(sapply(aux, function(x, i) x[[i]], i))
-      dimnames(out[[i]]) <- list(nms, models$model)
-    } else
-      out[[i]] <- NULL
-  }
-  out
+  models
 }
