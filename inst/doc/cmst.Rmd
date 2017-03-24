@@ -171,23 +171,15 @@ cmst(setup$driver, setup$outcomes,
 ## Other Functions
 
 There are several other functions involved in simulation and in data analysis that are not well documented yet.
-See `R/qtlyeast` available at <https://github.com/byandell/qtlyeast> for further analysis.
+See `R/qtlhot` from CRAN and `R/qtlyeast` available at <https://github.com/byandell/qtlyeast> for further analysis.
 
 ## References
 
-* Brem R., L. Kruglyak, 2005 The landscape of genetic complexity across 5,700 gene expression trait in yeast. PNAS {102:} 1572-1577.
-
 * Broman K., H. Wu, S. Sen, G. A. Churchill, 2003 R/qtl: QTL mapping in experimental crosses. Bioinformatics {19}: 889-890.
 
-* Chaibub Neto et al. (2012) Causal model selection hypothesis tests in systems genetics. Genetics (under review)
+* Chaibub Neto E, Broman AT, Keller MP, Attie AD, Zhang B, Zhu J, Yandell BS (2013) Modeling causality for pairs of phenotypes in system genetics. Genetics 193 : 1033-1013.
 
 * Churchill G. A., R. W. Doerge, 1994 Empirical threshold values for quantitative trait mapping. Genetics {138}: 963-971.
-
-* Haley C., S. Knott, 1992 A simple regression method for mapping quantitative trait loci in line crosses using flanking markers. Heredity {69}: 315-324.
-
-* Hughes T. R., M. J. Marton, A. R. Jones, C. J. Roberts, R. Stoughton, et al, 2000 Functional discovery via a compendium of expression profiles. Cell {102:} 109-116.
-
-* Manichaikul A., J. Dupuis, S. Sen, and K. W. Broman, 2006 Poor performance of bootstrap confidence intervals for the location of a quantitative trait locus. Genetics {174:} 481-489.
 
 * Schadt E. E., J. Lamb, X. Yang, J. Zhu, S. Edwards, et al., 2005 An integrative genomics approach to infer causal associations between gene expression and disease. Nature Genetics {37}: 710-717.
 

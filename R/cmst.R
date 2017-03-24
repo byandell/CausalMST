@@ -22,6 +22,8 @@
 #' @param method method for CMST test (parametric, non-parametric, joint or all three); can provide more than one value.
 #' @param penalty type of information criteria penalty (for BIC or AIC)
 #' @param verbose verbose output if \code{TRUE}
+#' @param ll_function log likelihood calculation function; see \code{\link{logLik_calcs}}
+#' @param ... possible additional arguments to \code{ll_function}
 #' 
 #' @export
 #' @importFrom dplyr tbl_df
@@ -29,9 +31,11 @@
 #' @importFrom corpcor is.positive.definite make.positive.definite
 #' 
 cmst <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
-                  method = c("par", "non.par", "joint", "all"),
-                  penalty = c("bic", "aic", "both"),
-                  verbose = FALSE) {
+                 method = c("par", "non.par", "joint", "all"),
+                 penalty = c("bic", "aic", "both"),
+                 verbose = FALSE,
+                 ll_function = logLik_calcs,
+                 ...) {
   
   if(any(is.na(c(driver))) | 
      any(is.na(c(outcomes))))
@@ -52,16 +56,30 @@ cmst <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
   if(!is.null(covariates)) {
     if(n_ind != n_cov | n_drv != n_cov)
       stop("driver, outcomes and covariates must have same number of rows")
+
+    if(!is.list(addcov)) {
+      addcov <- list(addcov)
+      if(length(addcov) == 1)
+        addcov[[2]] <- NULL
+    }
+    if(!is.list(intcov)) {
+      intcov <- list(intcov)
+      if(length(intcov) == 1)
+        intcov[[2]] <- NULL
+    }
+    for(i in 1:2) {
+      if(!is.null(addcov[[i]])) {
+        # Make sure addcov has all intcov.
+        uname <- unique(c(addcov[[i]], intcov[[i]]))
+        if(!all(uname %in% names(covariates)))
+          stop("some of covariate names not in covariates data frame")
+        addcov[[i]] <- covariates[, uname, drop = FALSE]
+      }
+      if(!is.null(intcov[[i]]))
+        intcov[[i]] <- covariates[, intcov[[i]], drop = FALSE]
+    }
   }
-  uname <- unique(unlist(c(addcov, intcov)))
-  if(!is.null(uname)) {
-    if(!all(uname %in% names(covariates)))
-      stop("some of covariate names not in covariates data frame")
-    covariates <- covariates[, uname, drop = FALSE]
-  } else {
-    covariates <- NULL
-  }
-  
+
   method <- match.arg(method, several.ok = TRUE)
   if("all" %in% method)
     method <- c("par", "non.par", "joint")
@@ -76,9 +94,8 @@ cmst <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
   for(k in 1 : ntests) {
     if(verbose)
       cat("outcomes2 = ", k, "\n")   
-    aux[[k]] <- cmst1(driver, outcomes[, c(1, 1 + k)], covariates, 
-                     addcov, intcov, 
-                     method, penalty)
+    aux[[k]] <- cmst1(driver, outcomes[, c(1, 1 + k)], addcov, intcov, 
+                      method, penalty, ll_function, ...)
   }
   
   models <- model_setup()
@@ -135,31 +152,40 @@ print.cmst <- function(x, ...) {
   invisible()
 }
 
-cmst1 <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
+cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
                  method = c("par", "non.par", "joint", "all"),
-                 penalty = c("bic", "aic", "both")) {
+                 penalty = c("bic", "aic", "both"), 
+                 ll_function, ...) {
   
   resp_names <- names(outcomes)
   if(length(resp_names) != 2)
     stop("only two outcomes for cmst1 call")
   
-  # Outcomes and covariates shift around. Combine all as passengers for convenience.
-  passengers <- outcomes
-  if(!is.null(covariates))
-    passengers <- cbind(outcomes, covariates)
-  
+  outcomes <- outcomes[resp_names]
+
   # log.lik.1 #
+  dfcol <- function(x, y, i) as.data.frame(cbind(x, as.matrix(y[,i, drop = FALSE])))
   ll_list <- list()
   ll_list[["y1.z"]] <-   
-    GetLogLik(driver, passengers, resp_names[1], addcov[[1]], intcov[[1]])
+    GetLogLik(driver, outcomes[[1]], 
+              addcov[[1]], intcov[[1]], 
+              ll_function, ...)
   ll_list[["y2.z"]] <-   
-    GetLogLik(driver, passengers, resp_names[2], addcov[[2]], intcov[[2]])
+    GetLogLik(driver, outcomes[[2]], 
+              addcov[[2]], intcov[[2]], 
+              ll_function, ...)
   ll_list[["y1.y2"]] <-  
-    GetLogLik(NULL, passengers, resp_names[1], c(addcov[[1]], resp_names[2]), intcov[[1]])
+    GetLogLik(NULL,   outcomes[[1]], 
+              dfcol(addcov[[1]], outcomes, 2), intcov[[1]], 
+              ll_function, ...)
   ll_list[["y2.y1"]] <-  
-    GetLogLik(NULL, passengers, resp_names[2], c(addcov[[2]], resp_names[1]), intcov[[2]])
-  ll_list[["y2.y1g"]] <- 
-    GetLogLik(driver, passengers, resp_names[2], c(addcov[[2]], resp_names[1]), intcov[[2]])
+    GetLogLik(NULL,   outcomes[[2]], 
+              dfcol(addcov[[2]], outcomes, 1), intcov[[2]], 
+              ll_function, ...)
+  ll_list[["y2.y1z"]] <- 
+    GetLogLik(driver, outcomes[[2]], 
+              dfcol(addcov[[2]], outcomes, 1), intcov[[2]], 
+              ll_function, ...)
   
   models <- model_setup()
   
@@ -246,7 +272,7 @@ model_setup <- function() {
     "M1.y2.y1.z", "y1.z", "y2.y1",
     "M2.y1.y2.z", "y2.z", "y1.y2",
     "M3.y1.z.y2", "y2.z", "y1.z",
-    "M4.y12.z",   "y1.z", "y2.y1g"),
+    "M4.y12.z",   "y1.z", "y2.y1z"),
     4, 3, byrow = TRUE))
   names(models) <- c("model","first","second")
   models
