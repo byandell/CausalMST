@@ -1,4 +1,7 @@
-ParametricJointCMST <- function(Z, Cor.hat) {
+#' @export
+#' 
+ParametricJointCMST <- function(object, Cor.hat) {
+  
   z <- min(Z[1, 2], Z[1, 3], Z[1, 4])
   pval.1 <- 1 - mnormt::pmnorm(c(z, z, z), c(0, 0, 0), Cor.hat[[1]])
   z <- min(- Z[1, 2], Z[2, 3], Z[2, 4])

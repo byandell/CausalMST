@@ -1,3 +1,5 @@
+#' @export
+#' 
 NonparametricIUCMST <- function(penalty, n, k, vec.logLik) {
   # Computes the non-parametric CMST
   # k: vector of length 4 with the model dimensions

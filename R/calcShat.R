@@ -1,12 +1,26 @@
-calcShat <- function(vec.logLik) {
-  n.ind <- nrow(vec.logLik)
-  vec.LR <- matrix(NA, n.ind, 6, 
-                   dimnames = list(NULL, c("12", "13", "14", "23", "24", "34")))
-  ip <- matrix(c(1, 1, 1, 2, 2, 3, 2, 3, 4, 3, 4, 4), 6, 2)
-  for (i in 1 : 6) {
-    vec.LR[, i] <- vec.logLik[, ip[i, 1]] - vec.logLik[, ip[i, 2]]
-  }
-  S.hat <- (1 - 1 / n.ind) * cov(vec.LR)
-  dimnames(S.hat) <- list(dimnames(vec.LR)[[2]], dimnames(vec.LR)[[2]])
-  S.hat
+#' @importFrom dplyr bind_cols
+#' @importFrom purrr map
+#' @export
+#'
+calcShat <- function(indLR) {
+  
+  # Might have object with indLR as element.
+  if(!(is.data.frame(indLR) | is.matrix(indLR)))
+    indLR <- indLR$indLR
+
+  d <- dim(indLR)
+  indLR <- as.data.frame(indLR)
+
+  LR <-
+    dplyr::bind_cols(
+      purrr::map(indLR,
+                 function(x,y) x-y,
+                 indLR))
+  names(LR) <- paste(rep(names(indLR), each = ncol(indLR)),
+                     names(LR),
+                     sep = ":")
+  LR <- LR[, rep(seq(d[2]), each = d[2]) < rep(seq(d[2]), d[2])]
+
+  #Shat
+  (1 - 1 / d[1]) * cov(LR)
 }

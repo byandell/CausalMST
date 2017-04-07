@@ -202,15 +202,11 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
   vec.logLik <- matrix(0, n_ind, 4)
   names(loglik) <- names(model.dim) <- colnames(vec.logLik) <- models$model
   for(i in 1:4) {
-    loglik[models$model[i]] <- 
-      ll_list[[models$first[i]]]$log.lik + 
-      ll_list[[models$second[i]]]$log.lik
-    model.dim[models$model[i]] <- 2 + 
-      ll_list[[models$first[i]]]$d + 
-      ll_list[[models$second[i]]]$d
-    vec.logLik[, models$model[i]] <- 
-      ll_list[[models$first[i]]]$vec.log.lik + 
-      ll_list[[models$second[i]]]$vec.log.lik
+    chain <- model_chain(ll_list[[models$first[i]]], 
+                         ll_list[[models$second[i]]])
+    loglik[models$model[i]] <- chain$loglik
+    model.dim[models$model[i]] <- 2 + chain$df
+    vec.logLik[, models$model[i]] <- chain$vec.logLik
   }
   
   out <- list(resp = resp_names,
