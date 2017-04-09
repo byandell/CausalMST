@@ -1,5 +1,5 @@
 #' @export
-#' 
+#'
 #' @importFrom purrr simplify_all transpose
 #' @importFrom stringr str_split
 #' @importFrom dplyr mutate
@@ -10,13 +10,12 @@ calcZ <- function(models,
                   flavor = c("B","A")) {
 
   n_ind <- nrow(models$indLR)
-  n_mod <- length(ICs)
 
-  LRt <- outer(ICs, ICs, function(x,y) x-y)
-  LRt <- LRt[rep(seq(n_mod), each = n_mod) < rep(seq(n_mod), n_mod)]
+  LRt <- outer(ICs, ICs, function(x,y) y-x)
+  LRt <- LRt[lower.tri(LRt)]
   LRt <- -LRt / (2 * sqrt(n_ind))
   Z <- LRt / sqrt(diag(S.hat))
-  
+
   left_right(Z)
 }
 
@@ -26,10 +25,13 @@ left_right <- function(Z) {
       purrr::simplify_all(
         purrr::transpose(
           stringr::str_split(names(Z), ":"))))
-  names(out) <- c("left", "right")
+  names(out) <- c("ref", "alt")
   out <- dplyr::mutate(out,
-                       left = as.character(left),
-                       right = as.character(right))
+                       ref = as.character(ref),
+                       alt = as.character(alt))
   out$Z <- Z
-  out
+  out2 <- out[,c(2,1,3)]
+  out2$Z <- -Z
+  names(out2) <- names(out)
+  dplyr::bind_rows(out, out2)
 }

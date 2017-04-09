@@ -6,36 +6,14 @@ ParametricIUCMST <- function(models, Zscores = calcZ(models)) {
 
   # Compare each model with all others and get max pvalue.
   # Need to handle left and right in opposite ways.
-  left <-
+  Zscores <-
     dplyr::ungroup(
       dplyr::summarize(
-        dplyr::group_by(
-          dplyr::rename(Zscores, 
-                        model = left),
-          model),
-        right = right[which.max(pv)][1],
-        pvr = max(pv))) # Use upper tail.
-    
-  right <-
-    dplyr::ungroup(
-      dplyr::summarize(
-        dplyr::group_by(
-          dplyr::rename(Zscores,
-                        model = right),
-          model),
-        left = left[which.min(pv)][1],
-        pvl = max(1 - pv))) # Use lower tail.
+        dplyr::group_by(Zscores, ref),
+        alt = alt[which.max(pv)][1],
+        pv = max(pv)))
 
-  # Join left and right model comparisons; find max pvalue for each model.
-  object <- 
-    dplyr::mutate(
-      dplyr::full_join(left, right, by="model"),
-      pvr = ifelse(is.na(pvr), 0, pvr),
-      pvl = ifelse(is.na(pvl), 0, pvl),
-      pvalue = pmax(pvr, pvl),
-      other = ifelse(pvr > pvl, right, left))
-  
-  out <- object$pvalue
-  names(out) <- object$model
+  out <- Zscores$pv
+  names(out) <- Zscores$ref
   out
 }

@@ -11,8 +11,8 @@ calcICs <- function(models, flavor = c("B","A")) {
   -2 * models$LR + models$df * penalty
 }
 calcBICs <- function(n, model.dim, loglik) {
-  calcIDs(n, model.dim, loglik, "B")
+  calcICs(n, model.dim, loglik, "B")
 }
 calcAICs <- function(n, model.dim, loglik) {
-  calcIDs(n, model.dim, loglik, "A")
+  calcICs(n, model.dim, loglik, "A")
 }
