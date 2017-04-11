@@ -18,7 +18,7 @@
 #' 
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
-#' @importFrom qtl2scan fit1
+#' @importFrom qtl2scan fit1 get_common_ids
 #' 
 #' @export
 #'
@@ -54,17 +54,24 @@ med_fits <- function(driver, target, mediator, fitFunction,
                      ...) {
 
   # Make sure all are matrices
+  target <- as.matrix(target)
+  if(is.null(colnames(target)))
+    colnames(target) <- "T"
+  if(is.null(rownames(target)))
+    rownames(target) <- seq_len(nrow(target))
+    
   driver <- as.matrix(driver)
+  if(is.null(rownames(driver)))
+    rownames(driver) <- rownames(target)
   if(is.null(colnames(driver)))
     colnames(driver) <- "D"
+  
   mediator <- as.matrix(mediator)
   if(is.null(rownames(mediator)))
     rownames(mediator) <- rownames(target)
   if(is.null(colnames(mediator)))
     colnames(mediator) <- "M"
-  target <- as.matrix(target)
-  if(is.null(colnames(target)))
-    colnames(target) <- "T"
+  
   if(!is.null(cov_tar)) {
     cov_tar <- as.matrix(cov_tar)
     if(is.null(colnames(cov_tar)))
@@ -77,7 +84,8 @@ med_fits <- function(driver, target, mediator, fitFunction,
   }
 
   # Keep individuals with full records.
-  ind2keep <- get_common_ids(driver, target, mediator, cov_tar, cov_med,
+  ind2keep <- 
+    qtl2scan::get_common_ids(driver, target, mediator, cov_tar, cov_med,
                              complete.cases = TRUE)
   driver <- driver[ind2keep,, drop = FALSE]
   target <- target[ind2keep,, drop = FALSE]

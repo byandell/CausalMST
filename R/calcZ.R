@@ -16,7 +16,13 @@ calcZ <- function(models,
   LRt <- -LRt / (2 * sqrt(n_ind))
   Z <- LRt / sqrt(diag(S.hat))
 
-  left_right(Z)
+  # Expand to data frame with ref, alt, Z.
+  result <- left_right(Z)
+  
+  # Add p-value
+  result$pv <- pnorm(result$Z, lower.tail = FALSE)
+  
+  result
 }
 
 left_right <- function(Z) {
