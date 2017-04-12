@@ -159,7 +159,7 @@ combo_comps <- function() {
   combos[7, 1:2] <- c(-1, 1)
   combos <- as.data.frame(t(combos))
   names(combos) <-
-    c("t.d_t", "m.d_t.m", "t.d_m.d", "m.td_m.t", "t.md_m.d", "t.md_t.d", "mediation")
+    c("t.d_t", "t.md_t.m", "m.d_m", "m.td_m.t", "t.m_t", "t.md_t.d", "mediation")
   combos
 }
 comb_models <- function(combos, fits) {

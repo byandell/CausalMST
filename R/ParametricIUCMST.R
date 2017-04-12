@@ -1,18 +1,24 @@
 #' @export
 #' 
-ParametricIUCMST <- function(models, Zscores = calcZ(models)) {
+normIUCMST <- function(models,
+                             Zscores = calcZ(models, ...),
+                             ...) {
+
+  # Expand to data frame with ref, alt, Z.
+  Zscores <- left_right(Zscores)
   
-  # Compare each model with all others and get max pvalue.
-  # Need to handle left and right in opposite ways.
-  ref <- unique(Zscores$ref)
-  Zscores <-
+  # Add p-value
+  Zscores$pv <- pnorm(Zscores$Z, lower.tail = FALSE)
+
+  # Compare reference model with all others and get max pvalue.
+  dplyr::mutate(
     dplyr::ungroup(
       dplyr::summarize(
-        dplyr::group_by(Zscores, ref),
+        dplyr::group_by(
+          dplyr::mutate(Zscores, 
+                        ref = factor(ref, unique(ref))),
+          ref),
         alt = alt[which.max(pv)][1],
-        pv = max(pv)))
-
-  out <- Zscores$pv
-  names(out) <- Zscores$ref
-  out[ref]
+        pv = max(pv))),
+    ref = as.character(ref))
 }

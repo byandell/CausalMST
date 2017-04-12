@@ -1,3 +1,18 @@
+#' @export
+compOld <- function(models) {
+  oShat <- CausalMST:::oldShat(models$indLR)
+  n_ind <- nrow(models$indLR)
+  BICs <- CausalMST::calcICs(models, "B")
+  Zold <- CausalMST:::oldCalcZ(oShat, BICs, n_ind)
+  Cor.hat <- CausalMST:::oldCorHat(oShat)
+  data.frame(par = CausalMST:::oldParCMST(Zold),
+             joint = CausalMST:::oldJointCMST(Zold, Cor.hat),
+             nonpar = CausalMST:::oldNonparCMST("bic", 
+                                                nrow(models$indLR), 
+                                                models$df, 
+                                                models$indLR))
+}
+
 oldShat <- function(vec.logLik) {
   n.ind <- nrow(vec.logLik)
   vec.LR <- matrix(NA, n.ind, 6, 
@@ -84,7 +99,7 @@ oldNonparCMST <- function(penalty, n, k, vec.logLik) {
   pval.4 <- max(pv[4, 1], pv[4, 2], pv[4, 3])
   c(pval.1, pval.2, pval.3, pval.4)
 }
-oldJointCMST <- function(object, Cor.hat) {
+oldJointCMST <- function(Z, Cor.hat) {
   
   z <- min(Z[1, 2], Z[1, 3], Z[1, 4])
   pval.1 <- 1 - mnormt::pmnorm(c(z, z, z), c(0, 0, 0), Cor.hat[[1]])
