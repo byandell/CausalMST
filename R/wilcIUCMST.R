@@ -27,17 +27,23 @@ wilcIUCMST <- function(models, flavor = c("B","A")) {
                      names(LR),
                      sep = ":")
   # Reduce to unique model comparisons Gj/Gk with j<k.
-  LR <- LR[, rep(seq(d[2]), each = d[2]) < rep(seq(d[2]), d[2])]
+  LR <- LR[, rep(seq(d[2]), each = d[2]) < rep(seq(d[2]), d[2]), drop = FALSE]
 
   LR <- t(data.frame(purrr::map(LR, tmpfn),
                       check.names = FALSE))
 
-  ## Organize as left_right, use pos to get pvalue
+  ## Organize as left_right, use W to get pvalue
+  W <- LR[,"W"]
+  nz <- LR[,"nz"]
+  if(length(W) == 1) { # restore colnames
+    names(W) <- rownames(LR)
+  }
+  names(nz) <- NULL
   LR2 <- dplyr::mutate(
     dplyr::rename(
       dplyr::mutate(
-        left_right(unlist(LR[,"W"])),
-        nz = rep(as.vector(LR[,"nz"]), 2),
+        left_right(W),
+        nz = rep(nz, 2),
         v = nz * (nz + 1) * (2 * nz + 1) / 6),
       W = Z),
     pv = pnorm(W, 0, sqrt(v), lower.tail = FALSE))

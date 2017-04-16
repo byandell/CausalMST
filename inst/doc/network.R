@@ -5,13 +5,13 @@ suppressPackageStartupMessages({
   library(igraph)
 })
 
-nodes <- readr::read_csv(file.path("inst/doc", "nodes.csv"))
-links <- readr::read_csv(file.path("inst/doc", "links.csv"))
+nodes <- readr::read_csv(file.path("inst/doc", "quatrad_nodes.csv"))
+links <- readr::read_csv(file.path("inst/doc", "quatrad_links.csv"))
 
 net <- igraph::graph_from_data_frame(d=links, vertices=nodes, directed=T)
 net <- igraph::simplify(net, remove.multiple = F, remove.loops = T)
 
-jpeg("inst/doc/models.jpg")
+jpeg("inst/doc/models.jpg", width = 720)
 par(mfcol=c(1,1), mar=c(0,2,0,2))
 plot(net,
      vertex.shape = "none",

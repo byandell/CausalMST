@@ -22,17 +22,24 @@ binomIUCMST <- function(models, flavor = c("B","A")) {
                      names(LR),
                      sep = ":")
   # Reduce to unique model comparisons Gj/Gk with j<k.
-  LR <- LR[, rep(seq(d[2]), each = d[2]) < rep(seq(d[2]), d[2])]
+  LR <- LR[, rep(seq(d[2]), each = d[2]) < rep(seq(d[2]), d[2]), drop = FALSE]
 
   LR <- t(data.frame(purrr::map(LR, tmpfn),
                       check.names = FALSE))
 
   ## Organize as left_right, use pos to get pvalue
+  pos <- LR[,"pos"]
+  if(length(pos) == 1) { # restore colnames
+    names(pos) <- rownames(LR)
+  }
+  nz <- LR[,"nz"]
+  names(nz) <- NULL
+
   LR2 <- dplyr::mutate(
     dplyr::rename(
       dplyr::mutate(
-        left_right(unlist(LR[,"pos"])),
-        nz = rep(as.vector(LR[,"nz"]), 2),
+        left_right(pos),
+        nz = rep(nz, 2),
         Z = ifelse(Z > 0, Z, nz + Z)),
       pos = Z),
     pv = pbinom(pos - 1, nz, 0.5, lower.tail = FALSE))

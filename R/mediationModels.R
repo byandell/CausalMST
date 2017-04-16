@@ -6,7 +6,7 @@
 # how to address complex traits (multiple QTLs) with mediation
 #
 #' Develop mediation models from driver, target and mediator
-#' 
+#'
 #' @param driver vector or matrix with driver values
 #' @param target vector or 1-column matrix with target values
 #' @param mediator vector or 1-column matrix with mediator values
@@ -15,11 +15,11 @@
 #' @param kinship optional kinship matrix among individuals
 #' @param cov_tar optional covariates for target
 #' @param cov_med optional covariates for mediator
-#' 
+#'
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
 #' @importFrom qtl2scan fit1 get_common_ids
-#' 
+#'
 #' @export
 #'
 mediationModels <- function(driver, target, mediator,
@@ -31,20 +31,20 @@ mediationModels <- function(driver, target, mediator,
        comps  = fit_models(fits, combo_comps()))
 }
 fit_models <- function(fits, combos = combo_models()) {
-  
+
   models <-
     purrr::transpose(
       purrr::map(combos,
                  comb_models, fits))
-  
+
   names(models) <- stringr::str_replace(names(models), "lod", "LR")
   names(models) <- stringr::str_replace(names(models), "_LR", "LR")
   models$LR <- unlist(models$LR) * log(10)
   models$indLR <- as.data.frame(models$indLR) * log(10)
   models$df <- unlist(models$df)
-  
+
   class(models) <- c("cmst_models", class(models))
-  
+
   models
 }
 
@@ -59,19 +59,19 @@ med_fits <- function(driver, target, mediator, fitFunction,
     colnames(target) <- "T"
   if(is.null(rownames(target)))
     rownames(target) <- seq_len(nrow(target))
-    
+
   driver <- as.matrix(driver)
   if(is.null(rownames(driver)))
     rownames(driver) <- rownames(target)
   if(is.null(colnames(driver)))
     colnames(driver) <- "D"
-  
+
   mediator <- as.matrix(mediator)
   if(is.null(rownames(mediator)))
     rownames(mediator) <- rownames(target)
   if(is.null(colnames(mediator)))
     colnames(mediator) <- "M"
-  
+
   if(!is.null(cov_tar)) {
     cov_tar <- as.matrix(cov_tar)
     if(is.null(colnames(cov_tar)))
@@ -84,8 +84,8 @@ med_fits <- function(driver, target, mediator, fitFunction,
   }
 
   # Keep individuals with full records.
-  ind2keep <- 
-    qtl2scan::get_common_ids(driver, target, mediator, cov_tar, cov_med,
+  ind2keep <-
+    qtl2scan::get_common_ids(driver, target, mediator, cov_tar, cov_med, kinship,
                              complete.cases = TRUE)
   driver <- driver[ind2keep,, drop = FALSE]
   target <- target[ind2keep,, drop = FALSE]
@@ -125,7 +125,7 @@ med_fits <- function(driver, target, mediator, fitFunction,
   # Add model degrees of freedom
   fits$df <- c(rep(ncol(driver) - 1, 3), ncol(mediator))
   names(fits$df) <- names(fits$lod)
-  
+
   fits
 }
 
