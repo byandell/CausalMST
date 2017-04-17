@@ -1,5 +1,15 @@
+#' Causal Model Selection Tests for mediation quatrads
+#'
+#' @param models Object from \code{\link{mediationModels}}
+#' @param test Type of CMST test to perform
+#' @param threshold Threshold for secondary test of best model across quatrads
+#'
 #' @export
-quatrad_CMST <- function(models, test = c("wilc","binom","joint","norm")) {
+#' @importFrom dplyr bind_rows filter inner_join rename
+#' @importFrom purrr map
+#'
+quatrad_CMST <- function(models, test = c("wilc","binom","joint","norm"),
+                         threshold = 0.1) {
   test <- match.arg(test)
   testfn <- switch(test,
                    wilc = CausalMST::wilcIUCMST,
@@ -21,10 +31,10 @@ quatrad_CMST <- function(models, test = c("wilc","binom","joint","norm")) {
   models_pv <-
     dplyr::bind_rows(
       purrr::map(node_id,
-                 tmpfn, models_par$models),
+                 tmpfn, models),
       .id = "quatrad")
 
-  ref <- (dplyr::filter(models_pv, pv <= 0.5))$ref
+  ref <- (dplyr::filter(models_pv, pv <= threshold))$ref
 
   if(length(ref) > 1) {
     best <-
@@ -35,6 +45,8 @@ quatrad_CMST <- function(models, test = c("wilc","binom","joint","norm")) {
                                   model %in% ref))$id))),
         best.pv = pv,
         best.alt = alt)
+    dplyr::left_join(models_pv, best, by = "ref")
+  } else {
+    models_pv
   }
-  dplyr::inner_join(models_pv, best, by = "ref")
 }
