@@ -3,8 +3,13 @@
 wilcIUCMST <- function(models, flavor = c("B","A")) {
 
   # Penalize individual log likelihood ratios
-  flavor <- match.arg(flavor)
   d <- dim(models$indLR)
+  if(d[2] <= 1)
+    return(data.frame(ref = names(models$LR),
+                     alt = "",
+                     pv = 1))
+  
+  flavor <- match.arg(flavor)
   pen <- penalty(d[1], flavor) / (2 * d[1])
   indLR <- as.data.frame(t(t(models$indLR) - models$df * pen))
 

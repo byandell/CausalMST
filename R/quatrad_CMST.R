@@ -32,15 +32,15 @@ quatrad_CMST <- function(models, test = c("wilc","binom","joint","norm"),
     dplyr::bind_rows(
       purrr::map(node_id,
                  tmpfn, models),
-      .id = "quatrad")
-
+      .id = "role")
+  
   ref <- (dplyr::filter(models_pv, pv <= threshold))$ref
 
   if(length(ref) > 1) {
     best <-
       dplyr::rename(
-        CausalMST::wilcIUCMST(
-          subset(models_par$models,
+        testfn(
+          subset(models,
             unique((dplyr::filter(nodes,
                                   model %in% ref))$id))),
         best.pv = pv,

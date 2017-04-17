@@ -90,9 +90,12 @@ med_fits <- function(driver, target, mediator, fitFunction,
   driver <- driver[ind2keep,, drop = FALSE]
   target <- target[ind2keep,, drop = FALSE]
   mediator <- mediator[ind2keep,, drop = FALSE]
-  cov_tar <- cov_tar[ind2keep,, drop = FALSE]
-  cov_med <- cov_med[ind2keep,, drop = FALSE]
-  kinship <- kinship[ind2keep, ind2keep]
+  if(!is.null(cov_tar))
+    cov_tar <- cov_tar[ind2keep,, drop = FALSE]
+  if(!is.null(cov_med))
+    cov_med <- cov_med[ind2keep,, drop = FALSE]
+  if(!is.null(kinship))
+    kinship <- kinship[ind2keep, ind2keep]
 
   fits <- list(
     t.d_t =

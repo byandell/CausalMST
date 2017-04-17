@@ -5,6 +5,11 @@ normJointIUCMST <- function(models,
                                 Shat = calcShat(models),
                                 ...) {
 
+  if(length(models$LR) == 1)
+    return(data.frame(ref = names(models$LR),
+                     alt = "",
+                     pv = 1))
+
   # Expand to data frame with ref, alt, Z.
   Zscores <- left_right(Zscores)
 
