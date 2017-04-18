@@ -35,13 +35,31 @@ mediate1_scan <- function(driver, target, mediator, fitFunction,
   scan_max <- fitFunction(driver, target, kinship, cov_tar)
   lod_t <- scan_max$lod
   
+  commons <- common_data(driver, target, mediator,
+                         kinship, cov_tar, cov_med)
+  driver <- commons$driver
+  target <- commons$target
+  mediator <- commons$mediator
+  kinship <- commons$kinship
+  cov_tar <- commons$cov_tar
+  cov_med <- commons$cov_med
+  
   quatrad_scan <- function(x, driver) {
+    # Force x (= mediator column) to be matrix.
+    x <- as.matrix(x)
+    rownames(x) <- rownames(driver)
+    colnames(x) <- "M"
+    # Fit mediation models.
     models_par <- mediationModels(driver, target, x, 
                                   qtl2scan::fit1,
-                                  kinship, cov_tar, cov_med)
+                                  kinship, cov_tar, cov_med,
+                                  common = TRUE)
+    # CMST on quatrads
     out <- quatrad_CMST(models_par$models, test, threshold=0.1)
+    # Mediation LOD
     med_lod <- sum(models_par$comps$LR[c("t.d_t", "mediation")]) / log(10)
     out$mediation <- med_lod
+    
     out
   }
 
