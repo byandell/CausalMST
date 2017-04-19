@@ -19,7 +19,8 @@
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
 #' @importFrom qtl2scan fit1 get_common_ids
-#' @importFrom ggplot2 aes autoplot facet_grid geom_hline geom_point ggplot
+#' @importfrom dplyr arrange bind_rows filter left_join rename
+#' @importFrom ggplot2 aes autoplot facet_grid geom_hline geom_point geom_vline ggplot ggtitle
 #'
 #' @export
 #'
@@ -92,10 +93,12 @@ mediate1_test <- function(driver, target, mediator, fitFunction,
   
   relabel <- c("D->M->T", "D->T->M", "M<-D->T", "D->{M,T}")
   names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
-  best$triad <- relabel[best$triad]
-
-  result <- dplyr::left_join(best, annotation, by = "id")
-  node_id <- quatrads()$node_id
+  best$triad <- factor(relabel[best$triad], relabel)
+  best$alt <- factor(relabel[best$alt], relabel)
+  
+  result <- dplyr::arrange(
+    dplyr::left_join(best, annotation, by = "id"),
+    pv)
 
   attr(result, "pos") <- pos_t
   attr(result, "lod") <- lod_t
@@ -123,27 +126,27 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
          pos_pv = {
            p <- ggplot2::ggplot(x, 
                ggplot2::aes(x=pos, y=-log10(pv), col=triad, symbol=symbol)) +
-             geom_point() +
-             facet_grid(~triad)
+             ggplot2::geom_point() +
+             ggplot2::facet_grid(~triad)
            if(!is.null(pos_t))
              p <- p +
-               geom_vline(xintercept = pos_t, col = "darkgrey")
+               ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
          },
          pv_lod = {
            p <- ggplot2::ggplot(x, 
              ggplot2::aes(y=mediation, x=-log10(pv), col=triad, symbol=symbol)) +
-           geom_point() +
-           facet_grid(~triad) +
-           geom_hline(yintercept = lod_t, col = "darkgrey")
+             ggplot2::geom_point() +
+             ggplot2::facet_grid(~triad) +
+             ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey")
          },
          pos_lod = {
            p <- ggplot2::ggplot(x, 
                ggplot2::aes(y=mediation, x=pos, col=triad, symbol=symbol)) +
-             geom_point() +
-             geom_hline(yintercept = lod_t, col = "darkgrey")
+             ggplot2::geom_point() +
+             ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey")
            if(!is.null(pos_t))
              p <- p +
-               geom_vline(xintercept = pos_t, col = "darkgrey")
+               ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
          })
-  p + ggtitle(main)
+  p + ggplot2::ggtitle(main)
 }
