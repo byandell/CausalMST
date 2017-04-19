@@ -35,8 +35,11 @@ quatrad_CMST <- function(models, test = c("wilc","binom","joint","norm"),
       .id = "role")
   
   ref <- (dplyr::filter(models_pv, pv <= threshold))$ref
-
-  if(length(ref) > 1) {
+  if(length(ref) < 2) {
+    dplyr::mutate(models_pv,
+                  best.pv = 1,
+                  best.alt = alt)
+  } else {
     best <-
       dplyr::rename(
         testfn(
@@ -46,7 +49,5 @@ quatrad_CMST <- function(models, test = c("wilc","binom","joint","norm"),
         best.pv = pv,
         best.alt = alt)
     dplyr::left_join(models_pv, best, by = "ref")
-  } else {
-    models_pv
   }
 }
