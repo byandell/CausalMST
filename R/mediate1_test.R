@@ -99,6 +99,7 @@ mediate1_test <- function(driver, target, mediator, fitFunction,
 
   attr(result, "pos") <- pos_t
   attr(result, "lod") <- lod_t
+  attr(result, "target") <- colnames(target)
   
   class(result) <- c("mediate1_test", class(result))
   result
@@ -112,7 +113,7 @@ autoplot.mediate1_test <- function(x, ...)
   plot_mediate1_test(x, ...)
 #' @export
 plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
-                               ...) {
+                               main = attr(x, "target"), ...) {
   type <- match.arg(type)
   
   pos_t <- attr(x, "pos")
@@ -127,13 +128,14 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
            if(!is.null(pos_t))
              p <- p +
                geom_vline(xintercept = pos_t, col = "darkgrey")
-           p
          },
-         pv_lod = ggplot2::ggplot(x, 
+         pv_lod = {
+           p <- ggplot2::ggplot(x, 
              ggplot2::aes(y=mediation, x=-log10(pv), col=triad, symbol=symbol)) +
            geom_point() +
            facet_grid(~triad) +
-           geom_hline(yintercept = lod_t, col = "darkgrey"),
+           geom_hline(yintercept = lod_t, col = "darkgrey")
+         },
          pos_lod = {
            p <- ggplot2::ggplot(x, 
                ggplot2::aes(y=mediation, x=pos, col=triad, symbol=symbol)) +
@@ -142,6 +144,6 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
            if(!is.null(pos_t))
              p <- p +
                geom_vline(xintercept = pos_t, col = "darkgrey")
-           p
          })
+  p + ggtitle(main)
 }
