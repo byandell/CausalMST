@@ -209,6 +209,12 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
     vec.logLik[, models$model[i]] <- chain$vec.logLik
   }
   
+  models <- list(
+    LR = loglik,
+    indLR = as.data.frame(vec.logLik),
+    df = model.dim
+  )
+
   out <- list(resp = resp_names,
               addcov = addcov,
               intcov = intcov,
@@ -219,41 +225,34 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
               S.hat = calcShat(vec.logLik))
   
   # Set up information criteria.
-  tmpfn <- function(x) {
-    x <- t(x)
-    x <- x[!is.na(x)]
-    names(x) <- c("z.12", "z.13", "z.14", "z.23", "z.24", "z.34")
-    x
-  }
   if("bic" %in% penalty & ("par" %in% method | "joint" %in% method)) {
-    out$BIC <- calcBICs(out$n.ind, model.dim, loglik)
-    BIC.Z <- calcZ(out$S.hat, out$BIC, out$n.ind)
-    out$BIC.Z <- tmpfn(BIC.Z)
+    out$BIC <- calcICs(models, "B")
+    BIC.Z <- calcZ(models, out$S.hat, out$BIC, "B")
+    out$BIC.Z <- BIC.Z
   }
   if("aic" %in% penalty & ("par" %in% method | "joint" %in% method)) {
-    out$AIC <- calcAICs(out$n.ind, model.dim, loglik)
-    AIC.Z <- calcZ(out$S.hat, out$AIC, out$n.ind)
-    out$AIC.Z <- tmpfn(AIC.Z)
+    out$AIC <- calcICs(models, "A")
+    AIC.Z <- calcZ(models, out$S.hat, out$AIC, "A")
+    out$AIC.Z <- AIC.Z
   }
   
   if("par" %in% method) {
     if("bic" %in% penalty)
-      out$pvals.p.BIC <- ParametricIUCMST(BIC.Z)
+      out$pvals.p.BIC <- normIUCMST(models, BIC.Z)
     if("aic" %in% penalty)
-      out$pvals.p.AIC <- ParametricIUCMST(AIC.Z)
+      out$pvals.p.AIC <- normIUCMST(models, AIC.Z)
   }  
   if("non.par" %in% method) {
     if("bic" %in% penalty)
-      out$pvals.np.BIC <- NonparametricIUCMST("bic", out$n.ind, model.dim, vec.logLik)
+      out$pvals.np.BIC <- binomIUCMST(models, "B")
     if("aic" %in% penalty)
-      out$pvals.np.AIC <- NonparametricIUCMST("aic", out$n.ind, model.dim, vec.logLik)
+      out$pvals.np.AIC <- binomIUCMST(models, "A")
   }  
   if("joint" %in% method) {
-    Cor.hat <- corHat(out$S.hat)
     if("bic" %in% penalty)
-      out$pvals.j.BIC <- ParametricJointCMST(BIC.Z, Cor.hat)
+      out$pvals.j.BIC <- normJointIUCMST(models, BIC.Z)
     if("aic" %in% penalty)
-      out$pvals.j.AIC <- ParametricJointCMST(AIC.Z, Cor.hat) 
+      out$pvals.j.AIC <- normJointIUCMST(models, AIC.Z) 
   }
   pvals <- grep("pvals", names(out))
   out[pvals] <- lapply(out[pvals], function(x,m) {

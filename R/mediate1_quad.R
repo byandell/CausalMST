@@ -1,27 +1,3 @@
-# Mediation quatrad tests
-#
-#' Develop mediation models from driver, target and mediator
-#'
-#' @param driver vector or matrix with driver values
-#' @param target vector or 1-column matrix with target values
-#' @param mediator matrix with mediator values by column
-#' @param fitFunction function to fit models with driver, target and mediator
-#' @param kinship optional kinship matrix among individuals
-#' @param cov_tar optional covariates for target
-#' @param cov_med optional covariates for mediator
-#' @param annotation Table with annotation, with \code{id} 
-#' agreeing with column names of \code{mediator}.
-#' @param test 
-#' @param pos Position of driver.
-#' @param ... additional parameters
-#'
-#' @importFrom purrr map transpose
-#' @importFrom stringr str_replace
-#' @importFrom qtl2scan fit1 get_common_ids
-#' @importFrom ggplot2 aes autoplot facet_wrap geom_hline geom_point ggplot
-#'
-#' @export
-#'
 mediate1_quad <- function(driver, target, mediator, fitFunction,
                           kinship=NULL, cov_tar=NULL, cov_med=NULL,
                           annotation, test = c("wilc","binom","joint","norm"),
