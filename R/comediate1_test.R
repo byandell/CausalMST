@@ -1,4 +1,4 @@
-# Mediation tests
+# Comediation tests
 #
 #' Develop mediation models from driver, target and mediator
 #'
@@ -9,26 +9,22 @@
 #' @param kinship optional kinship matrix among individuals
 #' @param cov_tar optional covariates for target
 #' @param cov_med optional covariates for mediator
-#' @param annotation Table with annotation, with \code{id} 
+#' @param annotation Table with annotation, with \code{id}
 #' agreeing with column names of \code{mediator}.
 #' @param test Type of CMST test.
 #' @param pos Position of driver.
-#' @param lod_threshold LOD threshold to include mediator.
 #' @param ... additional parameters
 #'
-#' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
 #' @importFrom qtl2scan fit1 get_common_ids
 #' @importFrom dplyr arrange bind_rows filter left_join rename
-#' @importFrom ggplot2 aes autoplot facet_grid geom_hline geom_point geom_vline ggplot ggtitle
 #'
 #' @export
 #'
-mediate1_test <- function(driver, target, mediator, fitFunction,
+comediate1_test <- function(driver, target, mediator, fitFunction,
                           kinship=NULL, cov_tar=NULL, cov_med=NULL,
                           annotation, test = c("wilc","binom","joint","norm"),
                           pos = NULL,
-                          lod_threshold = 5.5,
                           ...) {
 
   test <- match.arg(test)
@@ -37,18 +33,12 @@ mediate1_test <- function(driver, target, mediator, fitFunction,
                    binom = CausalMST::binomIUCMST,
                    joint = CausalMST::normJointIUCMST,
                    norm = CausalMST::normIUCMST)
-  tmpfn <- function(x, models) {
-    models <- subset(models, x)
-    dplyr::filter(
-      testfn(models),
-      pv == min(pv))
-  }
-  
+
   pos_t <- pos
 
   scan_max <- fitFunction(driver, target, kinship, cov_tar)
   lod_t <- scan_max$lod
-  
+
   commons <- common_data(driver, target, mediator,
                          kinship, cov_tar, cov_med)
   driver <- commons$driver
@@ -57,16 +47,16 @@ mediate1_test <- function(driver, target, mediator, fitFunction,
   kinship <- commons$kinship
   cov_tar <- commons$cov_tar
   cov_med <- commons$cov_med
-  
+
   cmst_fit <- function(x, driver) {
     # Force x (= mediator column) to be matrix.
     x <- as.matrix(x)
     rownames(x) <- rownames(driver)
     colnames(x) <- "M"
     # Fit mediation models.
-    models_par <- mediationModels(driver, target, x, 
+    models_par <- mediationModels(driver, target, x,
                                   qtl2scan::fit1,
-                                  kinship, cov_tar, cov_med,
+                                  kinship, cov_tar, cov_medi,
                                   common = TRUE)
     # CMST on quatrads
     out <- dplyr::filter(
@@ -78,85 +68,37 @@ mediate1_test <- function(driver, target, mediator, fitFunction,
     medor_lod <- models_par$comp$LR["m.d_m"] / log(10)
     out$mediation <- med_lod
     out$mediator <- medor_lod
-    
+
     out
   }
 
-  best <- purrr::map(as.data.frame(mediator), 
-                     cmst_fit, 
-                     driver)
+  best <- vector("list", ncol(mediator))
+  names(best) <- colnames(mediator)
+  for(i in names(best)) {
+    covi <- unlist(dplyr::filter(annotation, pheno == i)[, colnames(cov_med)])
+    cov_medi <- cov_med[, covi, drop = FALSE]
+    best[[i]] <- cmst_fit(mediator[,i], driver)
+  }
+
   best <- dplyr::rename(
-    dplyr::filter(
-      dplyr::bind_rows(best, .id = "id"),
-      mediator >= lod_threshold),
+    dplyr::bind_rows(best, .id = "pheno"),
     triad = ref)
-  
+
   relabel <- c("D->M->T", "D->T->M", "M<-D->T", "D->{M,T}")
   names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
   best$triad <- factor(relabel[best$triad], relabel)
   best$alt <- factor(relabel[best$alt], relabel)
-  
+
   result <- dplyr::arrange(
-    dplyr::left_join(best, annotation, by = "id"),
+    dplyr::rename(
+      dplyr::left_join(best, annotation, by = "pheno"),
+      symbol = pheno),
     pv)
 
   attr(result, "pos") <- pos_t
   attr(result, "lod") <- lod_t
   attr(result, "target") <- colnames(target)
-  
+
   class(result) <- c("mediate1_test", class(result))
   result
-}
-
-#' @export
-plot.mediate1_test <- function(x, ...)
-  ggplot2::autoplot(x, ...)
-#' @export
-autoplot.mediate1_test <- function(x, ...)
-  plot_mediate1_test(x, ...)
-#' @export
-plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
-                               main = attr(x, "target"), ...) {
-  type <- match.arg(type)
-  
-  pos_t <- attr(x, "pos")
-  lod_t <- attr(x, "lod")
-  
-  pg <- grep("pheno_group", names(x))
-  if(length(pg))
-    names(x)[pg] <- "biotype"
-  
-  switch(type,
-         pos_pv = {
-           p <- ggplot2::ggplot(x, 
-               ggplot2::aes(x=pos, y=-log10(pv), col=biotype, symbol=symbol)) +
-             ggplot2::geom_point() +
-             ggplot2::facet_grid(~triad) +
-             xlab("Position (Mbp)") +
-             ylab("-log10 of p-value")
-           if(!is.null(pos_t))
-             p <- p +
-               ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
-         },
-         pv_lod = {
-           p <- ggplot2::ggplot(x, 
-             ggplot2::aes(y=mediation, x=-log10(pv), col=biotype, symbol=symbol)) +
-             ggplot2::geom_point() +
-             ggplot2::facet_grid(~triad) +
-             ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
-             xlab("-log10 of p-value") +
-             ylab("Mediation LOD")
-         },
-         pos_lod = {
-           p <- ggplot2::ggplot(x, 
-               ggplot2::aes(y=mediation, x=pos, col=triad, symbol=symbol)) +
-             ggplot2::geom_point() +
-             ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
-             xlab("Position (Mbp)") +
-             ylab("Mediation LOD")
-           if(!is.null(pos_t))
-             p <- p +
-               ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
-         })
-  p + ggplot2::ggtitle(main)
 }
