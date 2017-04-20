@@ -16,16 +16,16 @@ You can install R/qtl2 from [GitHub](https://github.com/rqtl).
 
 You will need the following packages for DOread:
 
-    install.packages(c("broman", "dplyr"))
+    install.packages(c("dplyr", "purrr", "stringr", "ggplot2", "mnormt", "corpcor"))
 
 Then, install R/qtl2 using `devtools::install_github()`.
 
     library(devtools)
     install_github(paste0("rqtl/qtl2", c("scan")))
 
-Once you have installed these, install qtl2ggplot as
+Once you have installed these, install CausalMST as
 
-    install_github("byandell/DOread")
+    install_github("byandell/CausalMST")
 
 ---
 
