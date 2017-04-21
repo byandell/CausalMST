@@ -21,6 +21,7 @@
 #' @importFrom qtl2scan fit1 get_common_ids
 #' @importFrom dplyr arrange bind_rows filter left_join rename
 #' @importFrom ggplot2 aes autoplot facet_grid geom_hline geom_point geom_vline ggplot ggtitle
+#' @importFrom RColorBrewer brewer.pal
 #'
 #' @export
 #'
@@ -91,7 +92,7 @@ mediate1_test <- function(driver, target, mediator, fitFunction,
       mediator >= lod_threshold),
     triad = ref)
   
-  relabel <- c("causal", "reactive", "independent", "undecided")
+  relabel <- c("causal", "reactive", "independent", "correlated")
   names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
   best$triad <- factor(relabel[best$triad], relabel)
   best$alt <- factor(relabel[best$alt], relabel)
@@ -116,7 +117,8 @@ autoplot.mediate1_test <- function(x, ...)
   plot_mediate1_test(x, ...)
 #' @export
 plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
-                               main = attr(x, "target"), ...) {
+                               main = attr(x, "target"),
+                               threshold = 0.1, ...) {
   type <- match.arg(type)
   
   pos_t <- attr(x, "pos")
@@ -126,12 +128,22 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
   if(length(pg))
     names(x)[pg] <- "biotype"
   
+  relabel <- c(levels(x$triad), paste0("n.s. (p>", round(threshold, 2), ")"))
+  tmp <- as.character(x$triad)
+  tmp[x$pv > threshold] <- relabel[5]
+  x$triad <- factor(tmp, levels = relabel)
+  x <- dplyr::arrange(x, dplyr::desc(triad))
+  
+  # Colors
+  cols <- c(RColorBrewer::brewer.pal(4, "Dark2"), "#CCCCCC")
+  names(cols) <- relabel
+
   switch(type,
          pos_pv = {
-           p <- ggplot2::ggplot(x, 
+           p <- ggplot2::ggplot(dplyr::filter(x, x$pv <= threshold), 
                ggplot2::aes(x=pos, y=-log10(pv), col=biotype, 
                             symbol=symbol, mediation=mediation)) +
-             ggplot2::geom_point() +
+             ggplot2::geom_point(size = 3) +
              ggplot2::facet_grid(~triad) +
              xlab("Position (Mbp)") +
              ylab("-log10 of p-value")
@@ -140,10 +152,10 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
                ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
          },
          pv_lod = {
-           p <- ggplot2::ggplot(x, 
+           p <- ggplot2::ggplot(dplyr::filter(x, x$pv <= threshold), 
              ggplot2::aes(y=mediation, x=-log10(pv), col=biotype, 
                           symbol=symbol, position=pos)) +
-             ggplot2::geom_point() +
+             ggplot2::geom_point(size = 3) +
              ggplot2::facet_grid(~triad) +
              ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
              xlab("-log10 of p-value") +
@@ -153,10 +165,11 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
            p <- ggplot2::ggplot(x, 
                ggplot2::aes(y=mediation, x=pos, col=triad, 
                             symbol=symbol, pvalue=pv, biotype=biotype)) +
-             ggplot2::geom_point() +
+             ggplot2::geom_point(size = 3) +
              ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
              xlab("Position (Mbp)") +
-             ylab("Mediation LOD")
+             ylab("Mediation LOD") +
+             scale_color_manual(values = cols)
            if(!is.null(pos_t))
              p <- p +
                ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
