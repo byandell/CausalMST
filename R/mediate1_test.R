@@ -91,7 +91,7 @@ mediate1_test <- function(driver, target, mediator, fitFunction,
       mediator >= lod_threshold),
     triad = ref)
   
-  relabel <- c("D->M->T", "D->T->M", "M<-D->T", "D->{M,T}")
+  relabel <- c("causal", "reactive", "independent", "undecided")
   names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
   best$triad <- factor(relabel[best$triad], relabel)
   best$alt <- factor(relabel[best$alt], relabel)
@@ -129,7 +129,8 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
   switch(type,
          pos_pv = {
            p <- ggplot2::ggplot(x, 
-               ggplot2::aes(x=pos, y=-log10(pv), col=biotype, symbol=symbol)) +
+               ggplot2::aes(x=pos, y=-log10(pv), col=biotype, 
+                            symbol=symbol, mediation=mediation)) +
              ggplot2::geom_point() +
              ggplot2::facet_grid(~triad) +
              xlab("Position (Mbp)") +
@@ -140,7 +141,8 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
          },
          pv_lod = {
            p <- ggplot2::ggplot(x, 
-             ggplot2::aes(y=mediation, x=-log10(pv), col=biotype, symbol=symbol)) +
+             ggplot2::aes(y=mediation, x=-log10(pv), col=biotype, 
+                          symbol=symbol, position=pos)) +
              ggplot2::geom_point() +
              ggplot2::facet_grid(~triad) +
              ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
@@ -149,7 +151,8 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pv","pv_lod"),
          },
          pos_lod = {
            p <- ggplot2::ggplot(x, 
-               ggplot2::aes(y=mediation, x=pos, col=triad, symbol=symbol)) +
+               ggplot2::aes(y=mediation, x=pos, col=triad, 
+                            symbol=symbol, pvalue=pv, biotype=biotype)) +
              ggplot2::geom_point() +
              ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
              xlab("Position (Mbp)") +

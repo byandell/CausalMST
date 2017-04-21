@@ -84,7 +84,7 @@ comediate1_test <- function(driver, target, mediator, fitFunction,
     dplyr::bind_rows(best, .id = "pheno"),
     triad = ref)
 
-  relabel <- c("D->M->T", "D->T->M", "M<-D->T", "D->{M,T}")
+  relabel <- c("causal", "reactive", "independent", "undecided")
   names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
   best$triad <- factor(relabel[best$triad], relabel)
   best$alt <- factor(relabel[best$alt], relabel)
