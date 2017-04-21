@@ -19,7 +19,7 @@
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
 #' @importFrom qtl2scan fit1 get_common_ids
-#' @importFrom dplyr arrange bind_rows filter left_join rename
+#' @importFrom dplyr arrange bind_rows desc filter left_join rename
 #' @importFrom ggplot2 aes autoplot facet_grid geom_hline geom_point geom_vline ggplot ggtitle
 #' @importFrom RColorBrewer brewer.pal
 #'
