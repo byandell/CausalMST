@@ -4,18 +4,17 @@
 \alias{mediate1_test}
 \title{Develop mediation models from driver, target and mediator}
 \usage{
-mediate1_test(driver, target, mediator, fitFunction, kinship = NULL,
-  cov_tar = NULL, cov_med = NULL, annotation, test = c("wilc", "binom",
-  "joint", "norm"), pos = NULL, lod_threshold = 5.5, ...)
+mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
+  cov_med = NULL, test = c("wilc", "binom", "joint", "norm"), pos = NULL,
+  fitFunction = qtl2scan::fit1, data_type = c("expression", "phenotype"),
+  ...)
 }
 \arguments{
+\item{mediator}{List with mediators and annotation.}
+
 \item{driver}{vector or matrix with driver values}
 
 \item{target}{vector or 1-column matrix with target values}
-
-\item{mediator}{matrix with mediator values by column}
-
-\item{fitFunction}{function to fit models with driver, target and mediator}
 
 \item{kinship}{optional kinship matrix among individuals}
 
@@ -23,16 +22,18 @@ mediate1_test(driver, target, mediator, fitFunction, kinship = NULL,
 
 \item{cov_med}{optional covariates for mediator}
 
-\item{annotation}{Table with annotation, with \code{id} 
-agreeing with column names of \code{mediator}.}
-
 \item{test}{Type of CMST test.}
 
 \item{pos}{Position of driver.}
 
-\item{lod_threshold}{LOD threshold to include mediator.}
+\item{fitFunction}{function to fit models with driver, target and mediator}
+
+\item{data_type}{Type of mediator data.}
 
 \item{...}{additional parameters}
+
+\item{annotation}{Table with annotation, with \code{id} 
+agreeing with column names of \code{mediator}.}
 }
 \description{
 Develop mediation models from driver, target and mediator
