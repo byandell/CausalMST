@@ -85,7 +85,7 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod"),
          })
   if(exists("shapes")) {
     p <- p + ggplot2::geom_point(aes(shape = qtl_type), size = 2) +
-      ggplot2::aes(qtl_pos = qtl_pos, multi = multi) +
+      ggplot2::aes(chr = chr, qtl_pos = qtl_pos, multi = multi) +
       ggplot2::scale_shape_manual(values = shapes)
   } else {
     p <- p + ggplot2::geom_point(size = 2)
