@@ -42,7 +42,7 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod"),
     
     # Set up plot symbol.
     shapes <- c(17,16,2,1)
-    names(shapes) <- c("distal", "local", "distal_multi", "local_multi")
+    names(shapes) <- c("distal", "local", "distal_QTLs", "local_QTLs")
     x <- dplyr::mutate(x, qtl_type = names(shapes)[1 + local + 2 * (qtl_ct > 1)])
   }
 
@@ -54,7 +54,7 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod"),
          pos_pvalue = {
            p <- ggplot2::ggplot(dplyr::filter(x, x$pvalue <= maxPvalue)) +
              ggplot2::aes(x=pos, y=-log10(pvalue), col=biotype) +
-             ggplot2::aes(symbol=symbol, mediation=mediation) +
+             ggplot2::aes(symbol=symbol, mediation=mediation, QTL = QTL) +
              ggplot2::facet_grid(~triad) +
              ggplot2::xlab("Position (Mbp)") +
              ggplot2::ylab("-log10 of p-value")
@@ -65,7 +65,7 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod"),
          pvalue_lod = {
            p <- ggplot2::ggplot(dplyr::filter(x, x$pvalue <= maxPvalue)) +
              ggplot2::aes(y=mediation, x=-log10(pvalue), col=biotype) +
-             ggplot2::aes(symbol=symbol, position=pos) +
+             ggplot2::aes(symbol=symbol, position=pos, QTL = QTL) +
              ggplot2::facet_grid(~triad) +
              ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
              ggplot2::xlab("-log10 of p-value") +
@@ -74,7 +74,7 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod"),
          pos_lod = {
            p <- ggplot2::ggplot(x) + 
              ggplot2::aes(y=mediation, x=pos, col=triad) +
-             ggplot2::aes(symbol=symbol, pvalue=pvalue, biotype=biotype) +
+             ggplot2::aes(symbol=symbol, pvalue=pvalue, biotype=biotype, QTL = QTL) +
              ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
              ggplot2::xlab("Position (Mbp)") +
              ggplot2::ylab("Mediation LOD") +
@@ -85,7 +85,7 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod"),
          })
   if(exists("shapes")) {
     p <- p + ggplot2::geom_point(aes(shape = qtl_type), size = 2) +
-      ggplot2::aes(chr = chr, qtl_pos = qtl_pos, multi = multi) +
+      ggplot2::aes(chr = chr, qtl_pos = qtl_pos) +
       ggplot2::scale_shape_manual(values = shapes)
   } else {
     p <- p + ggplot2::geom_point(size = 2)
