@@ -35,6 +35,10 @@ common_data <- function(driver, target, mediator,
   ind2keep <-
     qtl2scan::get_common_ids(driver, target, mediator, cov_tar, cov_med, kinship,
                              complete.cases = TRUE)
+  if(length(ind2keep) < 100) {
+    warning(paste0("too few data (", length(ind2keep), ") for analysis"))
+    return(NULL)
+  }
   driver <- driver[ind2keep,, drop = FALSE]
   target <- target[ind2keep,, drop = FALSE]
   mediator <- mediator[ind2keep,, drop = FALSE]

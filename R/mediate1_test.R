@@ -56,6 +56,9 @@ mediate1_test <- function(mediator, driver, target,
   
   commons <- common_data(driver, target, mediator[[1]],
                          kinship, cov_tar, cov_med)
+  if(is.null(commons))
+    return(NULL)
+  
   driver <- commons$driver
   target <- commons$target
   kinship <- commons$kinship
