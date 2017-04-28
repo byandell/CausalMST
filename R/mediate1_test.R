@@ -66,8 +66,11 @@ mediate1_test <- function(mediator, driver, target,
   cov_med <- commons$cov_med
   
   # Reorganize annotation and mediator data.
-  annotation <- mediator[[2]]
+  # Need to make sure elements of mediator have same ids.
   mediator[[1]] <- as.data.frame(commons$mediator)
+  mediator[[2]] <- dplyr::filter(mediator[[2]],
+                                 id %in% colnames(mediator[[1]]))
+  annotation <- mediator[[2]]
   mediator[[2]] <- purrr::transpose(annotation)
 
   # Workhorse: CMST on each mediator.

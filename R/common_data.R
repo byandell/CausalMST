@@ -1,25 +1,26 @@
 common_data <- function(driver, target, mediator,
-                        kinship=NULL, cov_tar=NULL, cov_med=NULL) {
-  
+                        kinship=NULL, cov_tar=NULL, cov_med=NULL,
+                        minN = 100) {
+
   # Make sure all are matrices
   target <- as.matrix(target)
   if(is.null(colnames(target)))
     colnames(target) <- "T"
   if(is.null(rownames(target)))
     rownames(target) <- seq_len(nrow(target))
-  
+
   driver <- as.matrix(driver)
   if(is.null(rownames(driver)))
     rownames(driver) <- rownames(target)
   if(is.null(colnames(driver)))
     colnames(driver) <- "D"
-  
+
   mediator <- as.matrix(mediator)
   if(is.null(rownames(mediator)))
     rownames(mediator) <- rownames(target)
   if(is.null(colnames(mediator)))
     colnames(mediator) <- "M"
-  
+
   if(!is.null(cov_tar)) {
     cov_tar <- as.matrix(cov_tar)
     if(is.null(colnames(cov_tar)))
@@ -30,12 +31,31 @@ common_data <- function(driver, target, mediator,
     if(is.null(colnames(cov_med)))
       colnames(cov_med) <- paste0("covM", seq_len(ncol(cov_med)))
   }
-  
+
   # Keep individuals with full records.
   ind2keep <-
-    qtl2scan::get_common_ids(driver, target, mediator, cov_tar, cov_med, kinship,
+    qtl2scan::get_common_ids(driver, target, cov_tar, cov_med, kinship,
                              complete.cases = TRUE)
-  if(length(ind2keep) < 100) {
+  
+  # Drop mediator columns with too few non-missing data.
+  if(enough <- (length(ind2keep) >= minN)) {
+    m <- match(ind2keep, rownames(mediator), nomatch = 0)
+    ind2keep <- ind2keep[m > 0]
+    mediator <- mediator[m,, drop = FALSE]
+    
+    # This way considers only ind with no missing data.
+    # Might want another way if pattern of missing different for some mediators.
+    # Then would not do decomp_kinship and need to do common_data for single mediator
+    ok_med <- apply(mediator, 2, function(x) sum(!is.na(x))) >= minN
+    if(enough <- any(ok_med)) {
+      mediator <- mediator[, ok_med, drop = FALSE]
+      allMed <- apply(mediator, 1, function(x) !any(is.na(x)))
+      m <- match(ind2keep, rownames(mediator)[allMed], nomatch = 0)
+      ind2keep <- ind2keep[m > 0]
+      enough <- (length(ind2keep) >= minN)
+    }
+  }
+  if(!enough) {
     warning(paste0("too few data (", length(ind2keep), ") for analysis"))
     return(NULL)
   }
@@ -53,7 +73,7 @@ common_data <- function(driver, target, mediator,
   list(driver = driver,
        target = target,
        mediator = mediator,
-       kinship = kinship, 
-       cov_tar = cov_tar, 
+       kinship = kinship,
+       cov_tar = cov_tar,
        cov_med = cov_med)
 }
