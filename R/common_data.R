@@ -1,6 +1,6 @@
 common_data <- function(driver, target, mediator,
                         kinship=NULL, cov_tar=NULL, cov_med=NULL,
-                        minN = 100) {
+                        minN = 100, minCommon = 0.9) {
 
   # Make sure all are matrices
   target <- as.matrix(target)
@@ -38,6 +38,7 @@ common_data <- function(driver, target, mediator,
                              complete.cases = TRUE)
   
   # Drop mediator columns with too few non-missing data.
+  common <- TRUE
   if(enough <- (length(ind2keep) >= minN)) {
     m <- match(ind2keep, rownames(mediator), nomatch = 0)
     ind2keep <- ind2keep[m > 0]
@@ -46,13 +47,21 @@ common_data <- function(driver, target, mediator,
     # This way considers only ind with no missing data.
     # Might want another way if pattern of missing different for some mediators.
     # Then would not do decomp_kinship and need to do common_data for single mediator
+    
+    # Drop mediators with too little data.
     ok_med <- apply(mediator, 2, function(x) sum(!is.na(x))) >= minN
     if(enough <- any(ok_med)) {
       mediator <- mediator[, ok_med, drop = FALSE]
+      
+      # Check for missing across all remaining mediators.
       allMed <- apply(mediator, 1, function(x) !any(is.na(x)))
-      m <- match(ind2keep, rownames(mediator)[allMed], nomatch = 0)
-      ind2keep <- ind2keep[m > 0]
-      enough <- (length(ind2keep) >= minN)
+      # If proportion in common across mediators is high enough,
+      # then reduce to all common.
+      if(common <- (sum(ok_med) == 1) | (minCommon <= sum(allMed) / length(allMed))) {
+        m <- match(ind2keep, rownames(mediator)[allMed], nomatch = 0)
+        ind2keep <- ind2keep[m > 0]
+        enough <- (length(ind2keep) >= minN)
+      }
     }
   }
   if(!enough) {
@@ -68,12 +77,15 @@ common_data <- function(driver, target, mediator,
     cov_med <- cov_med[ind2keep,, drop = FALSE]
   if(!is.null(kinship)) {
     kinship <- kinship[ind2keep, ind2keep]
-    kinship <- qtl2scan::decomp_kinship(kinship)
+    # Decompose kinship if all in common.
+    if(common)
+      kinship <- qtl2scan::decomp_kinship(kinship)
   }
   list(driver = driver,
        target = target,
        mediator = mediator,
        kinship = kinship,
        cov_tar = cov_tar,
-       cov_med = cov_med)
+       cov_med = cov_med,
+       common = common)
 }

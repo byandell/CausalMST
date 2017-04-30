@@ -64,6 +64,7 @@ mediate1_test <- function(mediator, driver, target,
   kinship <- commons$kinship
   cov_tar <- commons$cov_tar
   cov_med <- commons$cov_med
+  common <- commons$common
   
   # Reorganize annotation and mediator data.
   # Need to make sure elements of mediator have same ids.
@@ -78,7 +79,7 @@ mediate1_test <- function(mediator, driver, target,
                      cmstfn, 
                      driver, target, 
                      kinship, cov_tar, cov_med,
-                     fitFunction, testfn)
+                     fitFunction, testfn, common)
 
   best <- dplyr::rename(
     dplyr::bind_rows(best, .id = "id"),
@@ -114,7 +115,8 @@ subset.mediate1_test <- function(object, not_type, ...) {
 
 cmst_default <- function(object, driver, target, 
                       kinship, cov_tar, cov_med,
-                      fitFunction, testFunction) {
+                      fitFunction, testFunction,
+                      common = TRUE) {
   
   # Force x (= mediator column) to be matrix.
   mediator <- as.matrix(object[[1]])
@@ -125,7 +127,7 @@ cmst_default <- function(object, driver, target,
   models_par <- mediationModels(driver, target, mediator, 
                                 fitFunction,
                                 kinship, cov_tar, cov_med,
-                                common = TRUE)
+                                common = common)
 
   # CMST on key models.
   out <- dplyr::rename(
@@ -147,7 +149,8 @@ cmst_default <- function(object, driver, target,
 
 cmst_pheno <- function(object, driver, target, 
                        kinship, cov_tar, cov_med,
-                       fitFunction, testFunction) {
+                       fitFunction, testFunction,
+                       common = TRUE) {
 
   # Set up covariates 
   covi <- unlist(object[[2]][colnames(cov_med)])
@@ -155,7 +158,8 @@ cmst_pheno <- function(object, driver, target,
   
   cmst_default(object, driver, target, 
                kinship, cov_tar, cov_medi,
-               fitFunction, testFunction)
+               fitFunction, testFunction,
+               common)
 }  
 
 
