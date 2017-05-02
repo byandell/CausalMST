@@ -54,13 +54,11 @@ common_data <- function(driver, target, mediator,
       mediator <- mediator[, ok_med, drop = FALSE]
       
       # Check for missing across all remaining mediators.
-      allMed <- apply(mediator, 1, function(x) !any(is.na(x)))
-      # If proportion in common across mediators is high enough,
-      # then reduce to all common.
-      if(common <- (sum(ok_med) == 1) | (minCommon <= sum(allMed) / length(allMed))) {
-        m <- match(ind2keep, rownames(mediator)[allMed], nomatch = 0)
-        ind2keep <- ind2keep[m > 0]
-        enough <- (length(ind2keep) >= minN)
+      allMed <- apply(mediator, 1, function(x) !all(is.na(x)))
+      mediator <- mediator[allMed,, drop = FALSE]
+      ind2keep <- ind2keep[allMed]
+      if(enough <- (length(ind2keep) >= minN)) {
+        common <- (sum(ok_med) == 1) | all(!is.na(mediator))
       }
     }
   }

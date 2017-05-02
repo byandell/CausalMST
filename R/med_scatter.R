@@ -14,7 +14,8 @@
 #' 
 #' @importFrom CCSanger sdp_to_logical
 #' @importFrom stringr str_split
-#' @importFrom ggplot2 aes autoplot facet_wrap geom_hline geom_smooth geom_text ggplot ggtitle xlab ylab
+#' @importFrom ggplot2 aes autoplot facet_wrap geom_hline geom_smooth 
+#' geom_text ggplot ggtitle scale_color_discrete xlab ylab
 #' 
 med_scatter <- function(driver, target, mediator,
                         kinship, cov_tar, cov_med, fitFunction,
@@ -67,37 +68,35 @@ med_scatter <- function(driver, target, mediator,
 #' @export
 plot_med_scatter <- function(x, ..., 
                              type = c("by_mediator", "by_target", "driver_offset", "driver"),
-                             tname = "target", mname = "mediator", dname = "driver") {
+                             tname = "target", mname = "mediator", dname = "driver",
+                             main = tname) {
   
   type <- match.arg(type)
   
   p <- ggplot2::ggplot(x) +
-    ggplot2::aes(label = geno, col = alt)
+    ggplot2::aes(label = geno, col = alt) +
+    ggplot2::scale_color_discrete(name = dname)
 
   switch(type,
          by_mediator = {
-           main <- paste(tname, "vs", mname, "by sex and", dname)
            p <- p + 
              ggplot2::aes(mediator, target) +
              ggplot2::xlab(mname) +
              ggplot2::ylab(tname)
          },
          by_target = {
-           main <- paste(mname, "vs", tname, "by sex and", dname)
            p <- p + 
              ggplot2::aes(target, mediator) +
              ggplot2::xlab(tname) +
              ggplot2::ylab(mname)
          },
          driver_offset = {
-           main <- paste("mediation of", dname, "effect on ", tname)
            p <- p + 
              ggplot2::aes(mediator, t.d_t - t.md_t.m) +
              ggplot2::xlab(mname) +
              ggplot2::ylab(paste(dname, "effect offset"))
          },
          driver = {
-           main <- paste("mediation offset of", dname, "effect vs", dname, "effect")
            p <- p + 
              ggplot2::aes(t.d_t, t.d_t - t.md_t.m) +
              ggplot2::xlab(paste(dname, "effect")) +
