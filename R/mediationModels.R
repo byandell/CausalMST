@@ -80,10 +80,20 @@ med_fits <- function(driver, target, mediator, fitFunction,
            kinship,
            cov_med),
     t.m_t =
-      fitFunction(mediator,
+      fitFunction(cbind(1, mediator),
            target,
            kinship,
-           cov_tar))
+           cov_tar),
+    m.td_m.t =
+      fitFunction(driver,
+                  mediator,
+                  kinship,
+                  cbind(cov_med, target)),
+    m.t_m =
+      fitFunction(cbind(1, target),
+                  mediator,
+                  kinship,
+                  cov_med))
 
   # Transpose list
   fits <- purrr::transpose(fits)
@@ -92,23 +102,24 @@ med_fits <- function(driver, target, mediator, fitFunction,
   fits$ind_lod <- as.matrix(as.data.frame(fits$ind_lod))
 
   # Add model degrees of freedom
-  fits$df <- c(rep(ncol(driver) - 1, 3), ncol(mediator))
+  fits$df <- c(rep(ncol(driver) - 1, 3), ncol(mediator), 
+               ncol(driver) - 1, ncol(mediator))
   names(fits$df) <- names(fits$lod)
 
   fits
 }
 
 combo_models <- function() {
-  combos <- matrix(0, 10, 4)
-  colnames(combos) <- c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t")
-  combos[1, c(1,4)] <- 1
+  combos <- matrix(0, 10, 6)
+  colnames(combos) <- c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.td_m.t", "m.t_m")
+  combos[1, c(1,6)] <- 1
   combos[2, c(3,4)] <- 1
   combos[3, c(1,3)] <- 1
-  combos[4, 2:4] <- 1
+  combos[4, c(1,5:6)] <- 1
   combos[5, 1] <- 1
   combos[6, 3] <- 1
   combos[7, c(2,4)] <- 1
-  combos[8, ] <- c(-1, rep(1, 3))
+  combos[8, 5:6] <- 1
   combos[9, 4] <- 1
   combos <- as.data.frame(t(combos))
   names(combos) <-
@@ -117,12 +128,12 @@ combo_models <- function() {
   combos
 }
 combo_comps <- function() {
-  combos <- matrix(0, 7, 4)
-  colnames(combos) <- c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t")
+  combos <- matrix(0, 7, 6)
+  colnames(combos) <- c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.td_m.t", "m.t_m")
   combos[1, 1] <- 1
   combos[2, 2] <- 1
   combos[3, 3] <- 1
-  combos[4, 1:3] <- c(-1, 1, 1)
+  combos[4, 5] <- 1
   combos[5, 4] <- 1
   combos[6, c(1:2,4)] <- c(-1, 1, 1)
   combos[7, 1:2] <- c(-1, 1)
