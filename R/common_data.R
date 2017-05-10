@@ -1,5 +1,7 @@
 common_data <- function(driver, target, mediator,
                         kinship=NULL, cov_tar=NULL, cov_med=NULL,
+                        driver_med=NULL,
+                        common = TRUE,
                         minN = 100, minCommon = 0.9) {
 
   # Make sure all are matrices
@@ -31,14 +33,18 @@ common_data <- function(driver, target, mediator,
     if(is.null(colnames(cov_med)))
       colnames(cov_med) <- paste0("covM", seq_len(ncol(cov_med)))
   }
-
+  if(!is.null(driver_med)) {
+    driver_med <- as.matrix(driver_med)
+    if(is.null(colnames(driver_med)))
+      colnames(driver_med) <- paste0("driverM", seq_len(ncol(driver_med)))
+  }
+  
   # Keep individuals with full records.
   ind2keep <-
-    qtl2scan::get_common_ids(driver, target, cov_tar, cov_med, kinship,
+    qtl2scan::get_common_ids(driver, target, cov_tar, cov_med, kinship, driver_med,
                              complete.cases = TRUE)
   
   # Drop mediator columns with too few non-missing data.
-  common <- TRUE
   if(enough <- (length(ind2keep) >= minN)) {
     m <- match(ind2keep, rownames(mediator), nomatch = 0)
     ind2keep <- ind2keep[m > 0]
@@ -58,7 +64,7 @@ common_data <- function(driver, target, mediator,
       mediator <- mediator[allMed,, drop = FALSE]
       ind2keep <- ind2keep[allMed]
       if(enough <- (length(ind2keep) >= minN)) {
-        common <- (sum(ok_med) == 1) | all(!is.na(mediator))
+        common <- common & (sum(ok_med) == 1) | all(!is.na(mediator))
       }
     }
   }
@@ -73,6 +79,8 @@ common_data <- function(driver, target, mediator,
     cov_tar <- cov_tar[ind2keep,, drop = FALSE]
   if(!is.null(cov_med))
     cov_med <- cov_med[ind2keep,, drop = FALSE]
+  if(!is.null(driver_med))
+    driver_med <- driver_med[ind2keep,, drop = FALSE]
   if(!is.null(kinship)) {
     kinship <- kinship[ind2keep, ind2keep]
     # Decompose kinship if all in common.
@@ -85,5 +93,6 @@ common_data <- function(driver, target, mediator,
        kinship = kinship,
        cov_tar = cov_tar,
        cov_med = cov_med,
+       driver_med = driver_med,
        common = common)
 }

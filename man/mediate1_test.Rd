@@ -5,9 +5,9 @@
 \title{Develop mediation models from driver, target and mediator}
 \usage{
 mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
-  cov_med = NULL, test = c("wilc", "binom", "joint", "norm"), pos = NULL,
-  fitFunction = qtl2scan::fit1, data_type = c("expression", "phenotype"),
-  ...)
+  cov_med = NULL, driver_med = NULL, test = c("wilc", "binom", "joint",
+  "norm"), pos = NULL, fitFunction = qtl2scan::fit1,
+  data_type = c("expression", "phenotype"), ...)
 }
 \arguments{
 \item{mediator}{List with mediators and annotation.}
@@ -31,9 +31,6 @@ mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
 \item{data_type}{Type of mediator data.}
 
 \item{...}{additional parameters}
-
-\item{annotation}{Table with annotation, with \code{id} 
-agreeing with column names of \code{mediator}.}
 }
 \description{
 Develop mediation models from driver, target and mediator

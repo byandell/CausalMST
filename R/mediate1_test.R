@@ -5,14 +5,12 @@
 #' @param driver vector or matrix with driver values
 #' @param target vector or 1-column matrix with target values
 #' @param mediator List with mediators and annotation.
-#' @param fitFunction function to fit models with driver, target and mediator
 #' @param kinship optional kinship matrix among individuals
 #' @param cov_tar optional covariates for target
 #' @param cov_med optional covariates for mediator
-#' @param annotation Table with annotation, with \code{id} 
-#' agreeing with column names of \code{mediator}.
 #' @param test Type of CMST test.
 #' @param pos Position of driver.
+#' @param fitFunction function to fit models with driver, target and mediator
 #' @param data_type Type of mediator data.
 #' @param ... additional parameters
 #'
@@ -28,6 +26,7 @@
 #'
 mediate1_test <- function(mediator, driver, target,
                           kinship=NULL, cov_tar=NULL, cov_med=NULL, 
+                          driver_med = NULL,
                           test = c("wilc","binom","joint","norm"),
                           pos = NULL,
                           fitFunction = qtl2scan::fit1,
@@ -55,7 +54,8 @@ mediate1_test <- function(mediator, driver, target,
   lod_t <- scan_max$lod
   
   commons <- common_data(driver, target, mediator[[1]],
-                         kinship, cov_tar, cov_med)
+                         kinship, cov_tar, cov_med,
+                         common = is.null(driver_med))
   if(is.null(commons))
     return(NULL)
   
@@ -72,14 +72,17 @@ mediate1_test <- function(mediator, driver, target,
   mediator[[2]] <- dplyr::filter(mediator[[2]],
                                  id %in% colnames(mediator[[1]]))
   annotation <- mediator[[2]]
+  if(!is.null(driver_med) & is.null(annotation$driver))
+    stop("need driver column in annotation when drier_med supplied") 
   mediator[[2]] <- purrr::transpose(annotation)
 
   # Workhorse: CMST on each mediator.
-  best <- purrr::map(purrr::transpose(mediator[1:2]), 
-                     cmstfn, 
-                     driver, target, 
-                     kinship, cov_tar, cov_med,
-                     fitFunction, testfn, common)
+  best <- purrr::map(
+    purrr::transpose(mediator[1:2]),
+    cmstfn, driver, target, 
+    kinship, cov_tar, cov_med,
+    driver_med,
+    fitFunction, testfn, common)
 
   best <- dplyr::rename(
     dplyr::bind_rows(best, .id = "id"),
@@ -115,18 +118,22 @@ subset.mediate1_test <- function(object, not_type, ...) {
 
 cmst_default <- function(object, driver, target, 
                       kinship, cov_tar, cov_med,
+                      driver_med,
                       fitFunction, testFunction,
                       common = TRUE) {
   
   # Force x (= mediator column) to be matrix.
   mediator <- as.matrix(object[[1]])
   rownames(mediator) <- rownames(driver)
-  colnames(mediator) <- "M"
-  
+  colnames(mediator) <- "mediator"
+  if(!is.null(driver_med))
+    driver_med <- driver_med[,, object[[2]]$driver]
+
   # Fit mediation models.
   models_par <- mediationModels(driver, target, mediator, 
                                 fitFunction,
                                 kinship, cov_tar, cov_med,
+                                driver_med,
                                 common = common)
 
   # CMST on key models.
@@ -137,18 +144,21 @@ cmst_default <- function(object, driver, target,
     pvalue = pv)
   
   # Mediation LOD
-  med_lod <- sum(models_par$comps$LR[c("t.d_t", "mediation")]) / log(10)
+  out$mediation <- sum(models_par$comps$LR[c("t.d_t", "mediation")]) / log(10)
   
   # Mediator LOD
-  medor_lod <- models_par$comp$LR["m.d_m"] / log(10)
-  out$mediation <- med_lod
-  out$mediator <- medor_lod
+  out$lod_med <- models_par$comp$LR["m.d_m"] / log(10)
   
-  out
+  # Coefficients
+  coef_target <- as.data.frame(t(models_par$models$coef$t.md_t.m[seq_len(ncol(driver))]))
+  coef_mediator <- as.data.frame(t(models_par$models$coef$m.d_m[seq_len(ncol(driver))]))
+  names(coef_mediator) <- paste0(names(coef_mediator), "_m")
+  dplyr::bind_cols(out, coef_target, coef_mediator)
 }
 
 cmst_pheno <- function(object, driver, target, 
                        kinship, cov_tar, cov_med,
+                       driver_med,
                        fitFunction, testFunction,
                        common = TRUE) {
 
@@ -158,6 +168,7 @@ cmst_pheno <- function(object, driver, target,
   
   cmst_default(object, driver, target, 
                kinship, cov_tar, cov_medi,
+               driver_med,
                fitFunction, testFunction,
                common)
 }  
