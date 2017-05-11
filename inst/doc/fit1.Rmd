@@ -1,0 +1,93 @@
+---
+title: "fit1"
+author: "Brian S. Yandell"
+date: "5/8/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+dat <- readRDS("dat.rds")
+```
+
+```{r}
+(logLik(lm(target~mediator, dat)) - logLik(lm(target~1,dat))) / log(10)
+```
+
+```{r}
+c(sum(resid(lm(target~1, dat))^2), sum(resid(lm(target~mediator, dat))^2))
+```
+
+```{r}
+(nrow(dat)/2) * log10(sum(resid(lm(target~1, dat))^2) / sum(resid(lm(target~mediator, dat))^2))
+```
+
+
+```{r}
+(logLik(lm(mediator~target, dat)) - logLik(lm(mediator~1,dat))) / log(10)
+```
+
+```{r}
+c(sum(resid(lm(mediator~1, dat))^2), sum(resid(lm(mediator~target, dat))^2))
+```
+
+```{r}
+(nrow(dat)/2) * log10(sum(resid(lm(mediator~1, dat))^2) / sum(resid(lm(mediator~target, dat))^2))
+```
+
+```{r}
+qtl2scan::fit1(as.matrix(cbind(1,dat[,"mediator", drop = FALSE])), 
+                         dat[,"target", drop = FALSE])$lod
+```
+
+```{r}
+qtl2scan::fit1(as.matrix(cbind(1,dat[,"target", drop = FALSE])), 
+                         dat[,"mediator", drop = FALSE])$lod
+```
+
+```{r}
+library(ggplot2)
+ggplot(dat, aes(x=target,y=mediator)) + geom_point() + geom_smooth(method="lm", se=FALSE)
+```
+
+```{r}
+knitr::knit_exit()
+```
+
+### Check ways to estimate mediation
+
+```{r}
+out <- CausalMST::compare_em(geno_max, phe_df, expr.mrna$expr[,33, drop = FALSE],
+                             qtl2scan::fit1,
+                             kinship[[chr_id]], cov_tar, cov_med)
+```
+
+```{r}
+commons <- CausalMST:::common_data(geno_max, phe_df, expr.mrna$expr[,33, drop = FALSE])
+dat <- dplyr::bind_cols(lapply(commons[1:3], as.data.frame))
+names(dat)[9:10] <- c("target","mediator")
+rownames(dat) <- rownames(commons$driver)
+```
+
+```{r}
+saveRDS(dat, file = "dat.rds")
+```
+
+```{r}
+lod_t.m <- (logLik(lm(target~mediator, dat)) - logLik(lm(target~1,dat))) / log(10)
+lod_m.t <- (logLik(lm(mediator~target, dat)) - logLik(lm(mediator~1,dat))) / log(10)
+```
+
+```{r}
+fit1_t.md <- qtl2scan::fit1(as.matrix(dat[,1:8]), 
+                           dat[,9, drop = FALSE],, 
+                           dat[,10, drop = FALSE])
+fit1_t.m <- qtl2scan::fit1(as.matrix(dat[,10, drop = FALSE]), 
+                           dat[,9, drop = FALSE])
+fit1_m.t <- qtl2scan::fit1(as.matrix(dat[,9, drop = FALSE]), 
+                           dat[,10, drop = FALSE])
+```
+

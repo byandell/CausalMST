@@ -17,9 +17,12 @@
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
 #' @importFrom qtl2scan fit1 get_common_ids
-#' @importFrom dplyr arrange bind_rows desc filter left_join rename
-#' @importFrom ggplot2 aes autoplot facet_grid geom_hline geom_point geom_vline ggplot 
-#' ggtitle scale_color_manual scale_shape_manual xlab ylab
+#' @importFrom dplyr arrange bind_rows desc filter group_by left_join mutate one_of rename ungroup
+#' @importFrom tidyr gather
+#' @importFrom ggplot2 aes autoplot element_blank facet_grid facet_wrap 
+#' geom_hline geom_point geom_vline ggplot 
+#' ggtitle scale_color_manual scale_shape_manual theme xlab ylab
+#' @importFrom grid grid.newpage pushViewport viewport grid.layout
 #' @importFrom RColorBrewer brewer.pal
 #'
 #' @export
@@ -53,9 +56,13 @@ mediate1_test <- function(mediator, driver, target,
   scan_max <- fitFunction(driver, target, kinship, cov_tar)
   lod_t <- scan_max$lod
   
+  use_1_driver <- is.null(mediator[[2]]$driver) | is.null(driver_med)
+  if(use_1_driver & !is.null(driver_med))
+    driver_med <- NULL
+  
   commons <- common_data(driver, target, mediator[[1]],
                          kinship, cov_tar, cov_med,
-                         common = is.null(driver_med))
+                         common = use_1_driver)
   if(is.null(commons))
     return(NULL)
   
@@ -72,8 +79,6 @@ mediate1_test <- function(mediator, driver, target,
   mediator[[2]] <- dplyr::filter(mediator[[2]],
                                  id %in% colnames(mediator[[1]]))
   annotation <- mediator[[2]]
-  if(!is.null(driver_med) & is.null(annotation$driver))
-    stop("need driver column in annotation when drier_med supplied") 
   mediator[[2]] <- purrr::transpose(annotation)
 
   # Workhorse: CMST on each mediator.
@@ -93,24 +98,24 @@ mediate1_test <- function(mediator, driver, target,
   best$triad <- factor(relabel[best$triad], relabel)
   best$alt <- factor(relabel[best$alt], relabel)
   
-  result <- dplyr::arrange(
-    dplyr::left_join(best, annotation, by = "id"),
-    pvalue)
-
-  attr(result, "params") <- list(pos = pos_t,
-                                 lod = lod_t,
-                                 target = colnames(target),
-                                 data_type = data_type)
-  
+  result <- list(
+    best = dplyr::arrange(
+      dplyr::left_join(best, annotation, by = "id"),
+      pvalue),
+    params = list(pos = pos_t,
+                  lod = lod_t,
+                  target = colnames(target),
+                  data_type = data_type),
+    targetFit = scan_max)
+    
   class(result) <- c("mediate1_test", class(result))
   result
 }
 #' @export
 subset.mediate1_test <- function(object, not_type, ...) {
-  attrs <- attr(object, "params")
   attrc <- class(object)
-  object <- dplyr::filter(object, biotype != not_type)
-  attr(object, "params") <- attrs
+  object$best <- dplyr::filter(object$best, 
+                               biotype != not_type)
   class(object) <- attrc
   
   object

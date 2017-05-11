@@ -68,12 +68,10 @@ med_fits <- function(driver, target, mediator, fitFunction,
   if(is.null(driver_med))
     driver_med <- driver
   
+  targetFit <- fitFunction(driver, target, kinship, cov_tar)
+  
   fits <- list(
-    t.d_t =
-      fitFunction(driver,
-           target,
-           kinship,
-           cov_tar),
+    t.d_t = targetFit,
     t.md_t.m =
       fitFunction(driver,
            target,
