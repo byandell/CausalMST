@@ -23,12 +23,17 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
   if(!("symbol" %in% names(x)))
     x <- dplyr::rename(x, symbol = id)
   
+  if(tmp <- any(is.na(x$triad))) {
+    warning(paste("some triad are NA:", sum(tmp)))
+  }
+  
   relabel <- levels(x$triad)
 
   if(type != "pos_lod")
     significant <- TRUE
   if(significant) {
-    x <- dplyr::filter(x, x$pvalue <= maxPvalue)
+    x <- dplyr::filter(x, 
+                       x$pvalue <= maxPvalue)
   } else {
     relabel <- c(relabel, 
                  paste0("n.s. (p>", round(maxPvalue, 2), ")"))
@@ -79,12 +84,13 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
            },
            pos_lod = {
              p <- ggplot2::ggplot(x) + 
-               ggplot2::aes(y=mediation, x=pos, col=triad) +
-               ggplot2::aes(symbol=symbol, pvalue=pvalue, biotype=biotype, QTL = QTL) +
+               ggplot2::aes(y=mediation, x=pos, col=biotype) +
+               ggplot2::aes(symbol=symbol, pvalue=pvalue, QTL = QTL) +
                ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
+               ggplot2::facet_grid(~triad, scales = "free_x") +
                ggplot2::xlab("Position (Mbp)") +
-               ggplot2::ylab("Mediation LOD") +
-               ggplot2::scale_color_manual(values = cols)
+               ggplot2::ylab("Mediation LOD")
+#               ggplot2::scale_color_manual(values = cols)
              if(!is.null(pos_t))
                p <- p +
                  ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")

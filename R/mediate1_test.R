@@ -93,6 +93,7 @@ mediate1_test <- function(mediator, driver, target,
     dplyr::bind_rows(best, .id = "id"),
     triad = ref)
   
+  # Kludge until I figure out why last level.
   relabel <- c("causal", "reactive", "independent", "correlated")
   names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
   best$triad <- factor(relabel[best$triad], relabel)

@@ -24,7 +24,7 @@ binomIUCMST <- function(models, flavor = c("B","A")) {
                indLR))
 
   names(LR) <- paste(rep(names(models$indLR), each = ncol(models$indLR)),
-                     names(LR),
+                     rep(names(models$indLR), ncol(models$indLR)),
                      sep = ":")
   # Reduce to unique model comparisons Gj/Gk with j<k.
   LR <- LR[, rep(seq(d[2]), each = d[2]) < rep(seq(d[2]), d[2]), drop = FALSE]
