@@ -12,7 +12,6 @@
 #' 
 #' @export
 #' 
-#' @importFrom CCSanger sdp_to_logical
 #' @importFrom stringr str_split
 #' @importFrom ggplot2 aes autoplot facet_wrap geom_hline geom_smooth 
 #' geom_text ggplot ggtitle scale_color_discrete xlab ylab
@@ -39,7 +38,7 @@ med_scatter <- function(driver, target, mediator,
   else
     haplos <- unique(unlist(stringr::str_split(genos, "")))
   
-  alt <- haplos[CCSanger::sdp_to_logical(sdp)]
+  alt <- haplos[sdp_to_logical(sdp, haplos)]
   if(allele) {
     dat$geno <- apply(round(2 * commons$driver), 1, 
                       function(x)
@@ -117,5 +116,12 @@ autoplot.med_scatter <- function(x, ...) {
 #' @export
 plot.med_scatter <- function(x, ...) {
   ggplot2::autoplot(x, ...)
+}
+
+# from qtl2pattern
+sdp_to_logical <- function(sdp, haplos = LETTERS[1:8]) {
+  sapply(sdp, function(x, haplos) {
+    as.logical(intToBits(x)[seq_along(haplos)])
+  }, haplos)
 }
 
