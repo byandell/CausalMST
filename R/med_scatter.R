@@ -70,7 +70,7 @@ med_scatter <- function(driver, target, mediator,
 #' @param tname target name (default \code{"target"})
 #' @param mname mediator name (default \code{"mediator"})
 #' @param dname driver name (default \code{"driver"})
-#' @parma hline horizontal line at value (default = \code{0}); set to \code{NA} for no line
+#' @parma hline horizontal line at value (default = \code{0}); set to \code{NA} for no line or \code{NULL} for mean
 #' @param main main title (defautl \code{tname})
 #' 
 #' @rdname med_scatter
@@ -112,7 +112,19 @@ plot_med_scatter <- function(x, ...,
              ggplot2::xlab(paste(dname, "effect")) +
              ggplot2::ylab(paste(dname, "effect offset"))
          })
-
+  if(is.null(hline)) {
+    switch(type,
+           driver_offset, by_mediator = {
+             hline <- mean(mediator, na.rm = TRUE)
+           },
+           by_target = {
+             hline <- mean(target, na.rm = TRUE)
+           },
+           driver = {
+             hline <- mean(t.d_t, na.rm = TRUE)
+           })
+  }
+  
   if(!is.na(hline))
     p <- p +
       ggplot2::geom_hline(yintercept = hline) +
