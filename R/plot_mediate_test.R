@@ -12,6 +12,10 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
                                significant = TRUE,
                                ...) {
   type <- match.arg(type)
+  if(is.null(local_only))
+    local_only <- FALSE
+  if(is.null(significant))
+    significant <- TRUE
   
   params <- x$params
   pos_t <- params$pos
