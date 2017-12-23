@@ -70,7 +70,7 @@ med_scatter <- function(driver, target, mediator,
 #' @param tname target name (default \code{"target"})
 #' @param mname mediator name (default \code{"mediator"})
 #' @param dname driver name (default \code{"driver"})
-#' @parma hline horizontal line at value (default = \code{0}); set to \code{NA} for no line or \code{NULL} for mean
+#' @param centerline horizontal line at value (default = \code{0}); set to \code{NA} for no line or \code{NULL} for mean
 #' @param main main title (defautl \code{tname})
 #' 
 #' @rdname med_scatter
@@ -78,7 +78,7 @@ med_scatter <- function(driver, target, mediator,
 plot_med_scatter <- function(x, ..., 
                              type = c("by_mediator", "by_target", "driver_offset", "driver"),
                              tname = "target", mname = "mediator", dname = "driver",
-                             hline = 0,
+                             centerline = 0,
                              main = tname) {
   
   type <- match.arg(type)
@@ -112,22 +112,23 @@ plot_med_scatter <- function(x, ...,
              ggplot2::xlab(paste(dname, "effect")) +
              ggplot2::ylab(paste(dname, "effect offset"))
          })
-  if(is.null(hline)) {
+  if(is.null(centerline)) {
     switch(type,
-           driver_offset, by_mediator = {
-             hline <- mean(mediator, na.rm = TRUE)
+           by_mediator = {
+             centerline <- mean(x$target, na.rm = TRUE)
            },
            by_target = {
-             hline <- mean(target, na.rm = TRUE)
+             centerline <- mean(x$mediator, na.rm = TRUE)
            },
-           driver = {
-             hline <- mean(t.d_t, na.rm = TRUE)
+           driver_offset, driver = {
+             centerline <- mean(x$t.d_t - x$t.md_t.m, na.rm = TRUE)
            })
   }
   
-  if(!is.na(hline))
+  if(!is.na(centerline)) {
     p <- p +
-      ggplot2::geom_hline(yintercept = hline) +
+      ggplot2::geom_hline(yintercept = centerline)
+  }
     
   p + 
     ggplot2::geom_smooth(method = "lm", se=FALSE) +

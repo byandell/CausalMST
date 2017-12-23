@@ -10,7 +10,7 @@ med_scatter(driver, target, mediator, kinship, cov_tar, cov_med, fitFunction,
 
 plot_med_scatter(x, ..., type = c("by_mediator", "by_target", "driver_offset",
   "driver"), tname = "target", mname = "mediator", dname = "driver",
-  hline = 0, main = tname)
+  centerline = 0, main = tname)
 }
 \arguments{
 \item{driver}{vector or matrix with driver values}
@@ -42,6 +42,8 @@ plot_med_scatter(x, ..., type = c("by_mediator", "by_target", "driver_offset",
 \item{mname}{mediator name (default \code{"mediator"})}
 
 \item{dname}{driver name (default \code{"driver"})}
+
+\item{centerline}{horizontal line at value (default = \code{0}); set to \code{NA} for no line or \code{NULL} for mean}
 
 \item{main}{main title (defautl \code{tname})}
 }
