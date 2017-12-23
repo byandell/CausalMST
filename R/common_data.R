@@ -54,17 +54,19 @@ common_data <- function(driver, target, mediator,
     # Might want another way if pattern of missing different for some mediators.
     # Then would not do decomp_kinship and need to do common_data for single mediator
     
+    # Count as number if not infinite and not missing
+    is_num <- function(x) { !is.na(x) & is.finite(x) }
     # Drop mediators with too little data.
-    ok_med <- apply(mediator, 2, function(x) sum(!is.na(x))) >= minN
+    ok_med <- apply(mediator, 2, function(x) sum(is_num(x))) >= minN
     if(enough <- any(ok_med)) {
       mediator <- mediator[, ok_med, drop = FALSE]
       
       # Check for missing across all remaining mediators.
-      allMed <- apply(mediator, 1, function(x) !all(is.na(x)))
+      allMed <- apply(mediator, 1, function(x) any(is_num(x)))
       mediator <- mediator[allMed,, drop = FALSE]
       ind2keep <- ind2keep[allMed]
       if(enough <- (length(ind2keep) >= minN)) {
-        common <- common & (sum(ok_med) == 1) | all(!is.na(mediator))
+        common <- common & (sum(ok_med) == 1) | all(is_num(mediator))
       }
     }
   }
