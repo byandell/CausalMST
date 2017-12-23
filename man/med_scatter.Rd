@@ -2,10 +2,15 @@
 % Please edit documentation in R/med_scatter.R
 \name{med_scatter}
 \alias{med_scatter}
+\alias{plot_med_scatter}
 \title{Scatter plot for mediator and target}
 \usage{
 med_scatter(driver, target, mediator, kinship, cov_tar, cov_med, fitFunction,
   sdp = 32, allele = TRUE)
+
+plot_med_scatter(x, ..., type = c("by_mediator", "by_target", "driver_offset",
+  "driver"), tname = "target", mname = "mediator", dname = "driver",
+  hline = 0, main = tname)
 }
 \arguments{
 \item{driver}{vector or matrix with driver values}
@@ -25,6 +30,20 @@ med_scatter(driver, target, mediator, kinship, cov_tar, cov_med, fitFunction,
 \item{sdp}{SNP distribution pattern for plot colors}
 
 \item{allele}{Driver has alleles if \code{TRUE}, otherwise allele pairs.}
+
+\item{x}{object of class \code{med_scatter}}
+
+\item{\dots}{additional parameters for plotting}
+
+\item{type}{type of plot: one of \code{("by_mediator", "by_target", "driver_offset", "driver")}}
+
+\item{tname}{target name (default \code{"target"})}
+
+\item{mname}{mediator name (default \code{"mediator"})}
+
+\item{dname}{driver name (default \code{"driver"})}
+
+\item{main}{main title (defautl \code{tname})}
 }
 \description{
 Scatter plot for mediator and target

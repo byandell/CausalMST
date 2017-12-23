@@ -64,10 +64,21 @@ med_scatter <- function(driver, target, mediator,
   
   dat
 }
+#' @param x object of class \code{med_scatter}
+#' @param \dots additional parameters for plotting
+#' @param type type of plot: one of \code{("by_mediator", "by_target", "driver_offset", "driver")}
+#' @param tname target name (default \code{"target"})
+#' @param mname mediator name (default \code{"mediator"})
+#' @param dname driver name (default \code{"driver"})
+#' @parma hline horizontal line at value (default = \code{0}); set to \code{NA} for no line
+#' @param main main title (defautl \code{tname})
+#' 
+#' @rdname med_scatter
 #' @export
 plot_med_scatter <- function(x, ..., 
                              type = c("by_mediator", "by_target", "driver_offset", "driver"),
                              tname = "target", mname = "mediator", dname = "driver",
+                             hline = 0,
                              main = tname) {
   
   type <- match.arg(type)
@@ -102,8 +113,11 @@ plot_med_scatter <- function(x, ...,
              ggplot2::ylab(paste(dname, "effect offset"))
          })
 
+  if(!is.na(hline))
+    p <- p +
+      ggplot2::geom_hline(yintercept = hline) +
+    
   p + 
-    ggplot2::geom_hline(yintercept = 0) +
     ggplot2::geom_smooth(method = "lm", se=FALSE) +
     ggplot2::geom_text(size=3) +
     ggplot2::facet_wrap(~ Sex) +
