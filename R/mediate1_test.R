@@ -36,6 +36,9 @@ mediate1_test <- function(mediator, driver, target,
                           data_type = c("expression","phenotype"),
                           ...) {
 
+  if(is.null(mediator))
+    return(NULL)
+  
   data_type = match.arg(data_type)
   # Need following in annotation for each data_type
   #   id = identifier of mediator
