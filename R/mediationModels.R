@@ -18,7 +18,7 @@
 #'
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
-#' @importFrom qtl2scan fit1 get_common_ids
+#' @importFrom qtl2 fit1 get_common_ids
 #'
 #' @export
 #'
@@ -67,9 +67,9 @@ med_fits <- function(driver, target, mediator, fitFunction,
   }
   if(is.null(driver_med))
     driver_med <- driver
-  
+
   targetFit <- fitFunction(driver, target, kinship, cov_tar)
-  
+
   fits <- list(
     t.d_t = targetFit,
     t.md_t.m =

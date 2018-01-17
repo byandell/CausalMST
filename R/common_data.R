@@ -38,29 +38,29 @@ common_data <- function(driver, target, mediator,
     if(is.null(colnames(driver_med)))
       colnames(driver_med) <- paste0("driverM", seq_len(ncol(driver_med)))
   }
-  
+
   # Keep individuals with full records.
   ind2keep <-
-    qtl2scan::get_common_ids(driver, target, cov_tar, cov_med, kinship, driver_med,
-                             complete.cases = TRUE)
-  
+    qtl2::get_common_ids(driver, target, cov_tar, cov_med, kinship, driver_med,
+                         complete.cases = TRUE)
+
   # Drop mediator columns with too few non-missing data.
   if(enough <- (length(ind2keep) >= minN)) {
     m <- match(ind2keep, rownames(mediator), nomatch = 0)
     ind2keep <- ind2keep[m > 0]
     mediator <- mediator[m,, drop = FALSE]
-    
+
     # This way considers only ind with no missing data.
     # Might want another way if pattern of missing different for some mediators.
     # Then would not do decomp_kinship and need to do common_data for single mediator
-    
+
     # Count as number if not infinite and not missing
     is_num <- function(x) { !is.na(x) & is.finite(x) }
     # Drop mediators with too little data.
     ok_med <- apply(mediator, 2, function(x) sum(is_num(x))) >= minN
     if(enough <- any(ok_med)) {
       mediator <- mediator[, ok_med, drop = FALSE]
-      
+
       # Check for missing across all remaining mediators.
       allMed <- apply(mediator, 1, function(x) any(is_num(x)))
       mediator <- mediator[allMed,, drop = FALSE]
@@ -87,7 +87,7 @@ common_data <- function(driver, target, mediator,
     kinship <- kinship[ind2keep, ind2keep]
     # Decompose kinship if all in common.
     if(common)
-      kinship <- qtl2scan::decomp_kinship(kinship)
+      kinship <- qtl2::decomp_kinship(kinship)
   }
   list(driver = driver,
        target = target,

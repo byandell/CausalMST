@@ -6,7 +6,7 @@
 \usage{
 mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
   cov_med = NULL, driver_med = NULL, test = c("wilc", "binom", "joint",
-  "norm"), pos = NULL, fitFunction = qtl2scan::fit1,
+  "norm"), pos = NULL, fitFunction = qtl2::fit1,
   data_type = c("expression", "phenotype"), ...)
 }
 \arguments{

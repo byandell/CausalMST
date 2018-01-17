@@ -5,12 +5,12 @@ Author: Elias Chaibub Neto <echaibub@hotmail.com> and Brian S Yandell <byandell@
 Title: Causal Model Selection Hypothesis Tests
 Description: Functions to compare causal models
 Maintainer: Brian S. Yandell <byandell@wisc.edu>
-Depends: 
+Depends:
     stats
 Imports:
     dplyr,purrr,tidyr,RColorBrewer
 Suggests:
-    qtl,qtl2scan,grid
+    qtl,qtl2,grid
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
