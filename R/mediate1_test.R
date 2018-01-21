@@ -200,6 +200,16 @@ covar_df_mx <- function(addcovar) {
   }
   wh_sex(addcovar)
 }
-
+# qtl2pattern:::wh_sex
+wh_sex <- function(addcovar) {
+  # Figure out which column is sex and make sure its name is "sex" 
+  m <- match("sexm", tolower(colnames(addcovar)))
+  if(is.na(m))
+    m <- match("sex", tolower(colnames(addcovar)))
+  if(!is.na(m))
+    colnames(addcovar)[m] <- "sex"
+  
+  addcovar
+}
 
 
