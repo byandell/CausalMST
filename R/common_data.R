@@ -41,7 +41,7 @@ common_data <- function(driver, target, mediator,
   
   # Keep individuals with full records.
   ind2keep <-
-    qtl2scan::get_common_ids(driver, target, cov_tar, cov_med, kinship, driver_med,
+    qtl2::get_common_ids(driver, target, cov_tar, cov_med, kinship, driver_med,
                              complete.cases = TRUE)
   
   # Drop mediator columns with too few non-missing data.
@@ -87,7 +87,7 @@ common_data <- function(driver, target, mediator,
     kinship <- kinship[ind2keep, ind2keep]
     # Decompose kinship if all in common.
     if(common)
-      kinship <- qtl2scan::decomp_kinship(kinship)
+      kinship <- qtl2::decomp_kinship(kinship)
   }
   list(driver = driver,
        target = target,

@@ -18,7 +18,7 @@
 #'
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
-#' @importFrom qtl2scan fit1 get_common_ids
+#' @importFrom qtl2 fit1 get_common_ids
 #'
 #' @export
 #'

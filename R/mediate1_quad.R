@@ -27,7 +27,7 @@ mediate1_quad <- function(driver, target, mediator, fitFunction,
     colnames(x) <- "M"
     # Fit mediation models.
     models_par <- mediationModels(driver, target, x, 
-                                  qtl2scan::fit1,
+                                  qtl2::fit1,
                                   kinship, cov_tar, cov_med,
                                   common = TRUE)
     # CMST on quatrads

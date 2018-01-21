@@ -16,7 +16,7 @@
 #'
 #' @importFrom purrr map transpose
 #' @importFrom stringr str_replace
-#' @importFrom qtl2scan fit1 get_common_ids
+#' @importFrom qtl2 decomp_kinship fit1 get_common_ids
 #' @importFrom dplyr arrange bind_rows desc filter group_by left_join mutate one_of rename ungroup
 #' @importFrom tidyr gather
 #' @importFrom ggplot2 aes autoplot element_blank facet_grid facet_wrap 
@@ -32,7 +32,7 @@ mediate1_test <- function(mediator, driver, target,
                           driver_med = NULL,
                           test = c("wilc","binom","joint","norm"),
                           pos = NULL,
-                          fitFunction = qtl2scan::fit1,
+                          fitFunction = qtl2::fit1,
                           data_type = c("expression","phenotype"),
                           ...) {
 
@@ -138,6 +138,10 @@ cmst_default <- function(object, driver, target,
   if(!is.null(driver_med))
     driver_med <- driver_med[,, object[[2]]$driver]
 
+  # Make sure covariates are numeric
+  cov_tar <- covar_df_mx(cov_tar)
+  cov_med <- covar_df_mx(cov_med)
+  
   # Fit mediation models.
   models_par <- mediationModels(driver, target, mediator, 
                                 fitFunction,
@@ -171,16 +175,29 @@ cmst_pheno <- function(object, driver, target,
                        fitFunction, testFunction,
                        common = TRUE) {
 
-  # Set up covariates 
-  covi <- unlist(object[[2]][colnames(cov_med)])
-  cov_medi <- cov_med[, covi, drop = FALSE]
+  # Get covariate names appropriate for mediator 
+  cov_names <- unlist(object[[2]][colnames(cov_med)])
+  if(length(cov_names))
+    cov_med <- cov_med[, cov_names, drop = FALSE]
+  else
+    cov_med <- NULL
   
   cmst_default(object, driver, target, 
-               kinship, cov_tar, cov_medi,
+               kinship, cov_tar, cov_med,
                driver_med,
                fitFunction, testFunction,
                common)
 }  
+# From qtl2pattern::covar_df_mx
+covar_df_mx <- function(addcovar) {
+  if(is.null(addcovar))
+    return(NULL)
+  if(is.data.frame(addcovar)) {
+    f <- formula(paste("~", paste(names(addcovar), collapse = "+")))
+    addcovar <- model.matrix(f, addcovar)[,-1, drop = FALSE]
+  }
+  wh_sex(addcovar)
+}
 
 
 
