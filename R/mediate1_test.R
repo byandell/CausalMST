@@ -67,7 +67,7 @@ mediate1_test <- function(mediator, driver, target,
     driver_med <- NULL
   
   commons <- common_data(driver, target, mediator[[1]],
-                         kinship, cov_tar, cov_med,
+                         kinship, cov_tar, NULL,
                          common = use_1_driver)
   if(is.null(commons))
     return(NULL)
@@ -76,8 +76,14 @@ mediate1_test <- function(mediator, driver, target,
   target <- commons$target
   kinship <- commons$kinship
   cov_tar <- commons$cov_tar
-  cov_med <- commons$cov_med
   common <- commons$common
+
+  # Two reasons not to put cov_med in common_data call:
+  # 1: different mediators may have different covariates
+  # 2: cov_med is data frame, so need to be careful.
+  # Fix up cov_med to match the rest
+  m <- match(rownames(driver), rownames(cov_med), nomatch = 0)
+  cov_med <- cov_med[m,, drop = FALSE]
   
   # Reorganize annotation and mediator data.
   # Need to make sure elements of mediator have same ids.
