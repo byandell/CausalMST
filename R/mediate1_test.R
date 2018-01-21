@@ -56,6 +56,9 @@ mediate1_test <- function(mediator, driver, target,
 
   pos_t <- pos
   
+  # Make sure covariates are numeric
+  cov_tar <- covar_df_mx(cov_tar)
+
   scan_max <- fitFunction(driver, target, kinship, cov_tar)
   lod_t <- scan_max$lod
   
@@ -139,7 +142,6 @@ cmst_default <- function(object, driver, target,
     driver_med <- driver_med[,, object[[2]]$driver]
 
   # Make sure covariates are numeric
-  cov_tar <- covar_df_mx(cov_tar)
   cov_med <- covar_df_mx(cov_med)
   
   # Fit mediation models.
