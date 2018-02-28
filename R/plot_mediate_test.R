@@ -51,8 +51,10 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
   if(params$data_type == "expression" & !type %in% c("alleles","mediator")) {
     if(local_only)
       x <- dplyr::filter(x, local)
-    else
-      x <- dplyr::mutate(x, pos = ifelse(local, pos, qtl_pos))
+    else {
+      if(!any(is.na(match(c("local", "qtl_pos"), names(x)))))
+        x <- dplyr::mutate(x, pos = ifelse(local, pos, qtl_pos))
+    }
     
     # Set up plot symbol.
     shapes <- c(17,16,2,1)
