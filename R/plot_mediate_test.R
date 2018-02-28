@@ -48,8 +48,7 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
   x <- dplyr::arrange(x, dplyr::desc(triad))
   
   # For expression, use qtl_pos if not missing.
-  if(params$data_type == "expression" & !type %in% c("alleles","mediator") &
-     !is.null(x$local)) {
+  if(params$data_type == "expression" & !type %in% c("alleles","mediator")) {
     if(local_only)
       x <- dplyr::filter(x, local)
     else {

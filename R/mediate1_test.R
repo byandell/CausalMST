@@ -33,7 +33,7 @@ mediate1_test <- function(mediator, driver, target,
                           test = c("wilc","binom","joint","norm"),
                           pos = NULL,
                           fitFunction = qtl2::fit1,
-                          data_type = c("expression","phenotype"),
+                          data_type = c("phenotype","expression"),
                           ...) {
 
   if(is.null(mediator))
