@@ -59,6 +59,8 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
     # Set up plot symbol.
     shapes <- c(17,16,2,1)
     names(shapes) <- c("distal", "local", "distal_QTLs", "local_QTLs")
+    if(is.null(x$local))
+      x$local <- FALSE
     x <- dplyr::mutate(x, qtl_type = names(shapes)[1 + local + 2 * (qtl_ct > 1)])
   }
 
