@@ -48,19 +48,17 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
   x <- dplyr::arrange(x, dplyr::desc(triad))
   
   # For expression, use qtl_pos if not missing.
-  if(params$data_type == "expression" & !type %in% c("alleles","mediator")) {
+  if(params$data_type == "expression" & !type %in% c("alleles","mediator") &
+     !is.null(x$local)) {
     if(local_only)
       x <- dplyr::filter(x, local)
     else {
-      if(!any(is.na(match(c("local", "qtl_pos"), names(x)))))
-        x <- dplyr::mutate(x, pos = ifelse(local, pos, qtl_pos))
+      x <- dplyr::mutate(x, pos = ifelse(local, pos, qtl_pos))
     }
     
     # Set up plot symbol.
     shapes <- c(17,16,2,1)
     names(shapes) <- c("distal", "local", "distal_QTLs", "local_QTLs")
-    if(is.null(x$local))
-      x$local <- FALSE
     x <- dplyr::mutate(x, qtl_type = names(shapes)[1 + local + 2 * (qtl_ct > 1)])
   }
 
