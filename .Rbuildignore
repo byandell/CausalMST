@@ -7,3 +7,4 @@
 \.gitignore$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^inst/notes/CCmouse$

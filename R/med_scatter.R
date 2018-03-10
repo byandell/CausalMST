@@ -20,6 +20,10 @@ med_scatter <- function(driver, target, mediator,
                         kinship, cov_tar, cov_med, fitFunction,
                         sdp = 32,
                         allele = TRUE) {
+  
+  # Make sure covariates are numeric
+  cov_tar <- covar_df_mx(cov_tar)
+  cov_med <- covar_df_mx(cov_med)
 
   commons <- common_data(driver, target, mediator,
                          kinship, cov_tar, cov_med)

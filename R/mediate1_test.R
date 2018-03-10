@@ -35,6 +35,8 @@ mediate1_test <- function(mediator, driver, target,
                           fitFunction = qtl2::fit1,
                           data_type = c("phenotype","expression"),
                           ...) {
+  
+  ## Need to enable different covariates for different mediators.
 
   if(is.null(mediator))
     return(NULL)
