@@ -159,12 +159,12 @@ cmst_default <- function(object, driver, target,
                                 driver_med,
                                 common = common)
 
-  # CMST on key models.
-  out <- dplyr::rename(
+  # CMST on key models. Pick first as best.
+  out <- head(dplyr::rename(
     dplyr::filter(
       testFunction(subset(models_par$models, 1:4)),
       pv == min(pv)),
-    pvalue = pv)
+    pvalue = pv), n = 1L)
   
   # Mediation LOD
   out$mediation <- sum(models_par$comps$LR[c("t.d_t", "mediation")]) / log(10)
