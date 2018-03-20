@@ -1,5 +1,24 @@
 ## Mediation
 
+Original routine used in vignette
+
+```{r eval=FALSE}
+cmst
+  cmst1
+    GetLogLik
+    logLik_calcs
+    model_chain
+    calcICs
+    calcZ
+    normIUCMST
+    binomIUCMST
+    normJointIUCMST
+  model_setup
+```
+
+
+Routine now used in R/qtl2shiny:
+
 ```{r}
 mediate_obj <- CausalMST::mediate1_test(
   med_ls, 
@@ -35,6 +54,8 @@ mediate1_test
           calcICs
             penalty
         calcShat
+        corHat
+        left_right
 ```
 
 Note: `fit_models` set up for 10 models and 7 comparisons. Only need 4 models and some of the comparisons, as used in `mediationModels`:

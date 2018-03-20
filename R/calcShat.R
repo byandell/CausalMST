@@ -18,7 +18,7 @@ calcShat <- function(indLR) {
                  function(x,y) x-y,
                  indLR))
   names(LR) <- paste(rep(names(indLR), each = ncol(indLR)),
-                     names(LR),
+                     rep(names(indLR), ncol(indLR)),
                      sep = ":")
   # Reduce to unique model comparisons Gj/Gk with j<k.
   LR <- LR[, rep(seq(d[2]), each = d[2]) < rep(seq(d[2]), d[2])]

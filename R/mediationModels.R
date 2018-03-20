@@ -70,14 +70,7 @@ combine_models <- function(combos, fits) {
 
 fit_comps <- function(fits, combos = combo_comps()) {
   
-  comps <-
-    purrr::transpose(
-      purrr::map(combos,
-                 combine_comps, fits["lod"]))
-  
-  # Change LOD to LR
-  names(comps) <- stringr::str_replace(names(comps), "lod", "LR")
-  comps$LR <- unlist(comps$LR) * log(10)
+  comps <- list(LR = apply(fits$lod * combos, 2, sum) * log(10))
 
   class(comps) <- c("cmst_models", class(comps))
   
@@ -91,7 +84,4 @@ combo_comps <- function() {
   combos[  3, 2] <- 1        # mediator contrast
   combos[1:2, 3] <- c(-1, 1) # mediation contrast
   as.data.frame(combos)
-}
-combine_comps <- function(combos, fits) {
-  list(lod = sum(fits$lod * combos))
 }
