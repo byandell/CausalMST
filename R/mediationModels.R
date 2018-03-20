@@ -28,19 +28,21 @@ mediationModels <- function(driver, target, mediator,
   fits <- med_fits(driver, target, mediator, fitFunction, ...)
 
   list(models = fit_models(fits),
-       comps  = fit_models(fits, combo_comps()))
+       comps  = fit_comps(fits))
 }
 fit_models <- function(fits, combos = combo_models()) {
 
   models <-
     purrr::transpose(
       purrr::map(combos,
-                 comb_models, fits[c("lod", "ind_lod", "df")]))
+                 combine_models, fits[c("lod", "ind_lod", "df")]))
 
+  # Change LOD to LR
   names(models) <- stringr::str_replace(names(models), "lod", "LR")
   names(models) <- stringr::str_replace(names(models), "_LR", "LR")
   models$LR <- unlist(models$LR) * log(10)
   models$indLR <- as.data.frame(models$indLR) * log(10)
+  
   models$df <- unlist(models$df)
   models$coef <- fits$coef
 
@@ -48,110 +50,48 @@ fit_models <- function(fits, combos = combo_models()) {
 
   models
 }
-
-med_fits <- function(driver, target, mediator, fitFunction,
-                     kinship=NULL, cov_tar=NULL, cov_med=NULL,
-                     driver_med = NULL,
-                     common = FALSE, ...) {
-
-  if(!common) {
-    commons <- common_data(driver, target, mediator,
-                           kinship, cov_tar, cov_med, driver_med)
-    driver <- commons$driver
-    target <- commons$target
-    mediator <- commons$mediator
-    kinship <- commons$kinship
-    cov_tar <- commons$cov_tar
-    cov_med <- commons$cov_med
-    driver_med <- commons$driver_med
-  }
-  if(is.null(driver_med))
-    driver_med <- driver
-  
-  targetFit <- fitFunction(driver, target, kinship, cov_tar)
-  
-  fits <- list(
-    t.d_t = targetFit,
-    t.md_t.m =
-      fitFunction(driver,
-           target,
-           kinship,
-           cbind(cov_tar, mediator)),
-    m.d_m =
-      fitFunction(driver_med,
-           mediator,
-           kinship,
-           cov_med),
-    t.m_t =
-      fitFunction(cbind(1, mediator),
-           target,
-           kinship,
-           cov_tar),
-    m.td_m.t =
-      fitFunction(driver_med,
-                  mediator,
-                  kinship,
-                  cbind(cov_med, target)),
-    m.t_m =
-      fitFunction(cbind(1, target),
-                  mediator,
-                  kinship,
-                  cov_med))
-
-  # Transpose list
-  fits <- purrr::transpose(fits)
-
-  fits$lod <- unlist(fits$lod)
-  fits$ind_lod <- as.matrix(as.data.frame(fits$ind_lod))
-
-  # Add model degrees of freedom
-  ndt <- ncol(driver) - 1
-  ndm <- ncol(driver_med) - 1
-  nmed <- ncol(mediator)
-  fits$df <- c(rep(ndt, 2), ndm, nmed, ndm, nmed)
-  names(fits$df) <- names(fits$lod)
-
-  fits
-}
-
 combo_models <- function() {
-  combos <- matrix(0, 11, 6)
-  colnames(combos) <- c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.td_m.t", "m.t_m")
-  combos[1, c(1,6)] <- 1
-  combos[2, c(3,4)] <- 1
-  combos[3, c(1,3)] <- 1
-  combos[4, 2:4] <- 1
-  combos[5, 1] <- 1
-  combos[6, 3] <- 1
-  combos[7, c(2,4)] <- 1
-  combos[8, 5:6] <- 1
-  combos[9, 4] <- 1
-  combos[11, c(1,5:6)] <- 1
-  combos <- as.data.frame(t(combos))
-  names(combos) <-
-    c("t.d_m.t", "m.d_t.m", "t.d_m.d", "t.md_m.d", "t.d_m",
-      "m.d_t", "t.md_m", "m.td_t", "t.m_m", "t_m", "m.td_t.d")
-  combos
+  combos <- matrix(0, 5, 4,
+                   dimnames = list(c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.t_m"),
+                                   c("t.d_m.t", "m.d_t.m", "t.d_m.d", "t.md_m.d")))
+  combos[c(1,5), 1] <- 1 # causal
+  combos[c(3,4), 2] <- 1 # reactive
+  combos[c(1,3), 3] <- 1 # independent
+  combos[   2:4, 4] <- 1 # correlated
+  as.data.frame(combos)
 }
-combo_comps <- function() {
-  combos <- matrix(0, 7, 6)
-  colnames(combos) <- c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.td_m.t", "m.t_m")
-  combos[1, 1] <- 1
-  combos[2, 2] <- 1
-  combos[3, 3] <- 1
-  combos[4, 5] <- 1
-  combos[5, 4] <- 1
-  combos[6, c(1:2,4)] <- c(-1, 1, 1)
-  combos[7, 1:2] <- c(-1, 1)
-  combos <- as.data.frame(t(combos))
-  names(combos) <-
-    c("t.d_t", "t.md_t.m", "m.d_m", "m.td_m.t", "t.m_t", "t.md_t.d", "mediation")
-  combos
-}
-comb_models <- function(combos, fits) {
-
+combine_models <- function(combos, fits) {
+  
   list(lod = sum(fits$lod * combos),
        ind_lod = fits$ind_lod %*% combos,
        df = sum(fits$df * combos),
        coef = fits$coef)
+}
+
+fit_comps <- function(fits, combos = combo_comps()) {
+  
+  comps <-
+    purrr::transpose(
+      purrr::map(combos,
+                 combine_comps, fits["lod"]))
+  
+  # Change LOD to LR
+  names(comps) <- stringr::str_replace(names(comps), "lod", "LR")
+  comps$LR <- unlist(comps$LR) * log(10)
+
+  class(comps) <- c("cmst_models", class(comps))
+  
+  comps
+}
+combo_comps <- function() {
+  combos <- matrix(0, 5, 3,
+                   dimnames = list(c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.t_m"),
+                                   c("t.d_t", "m.d_m", "mediation")))
+  combos[  1, 1] <- 1        # target contrast
+  combos[  3, 2] <- 1        # mediator contrast
+  combos[1:2, 3] <- c(-1, 1) # mediation contrast
+  as.data.frame(combos)
+}
+combine_comps <- function(combos, fits) {
+  list(lod = sum(fits$lod * combos))
 }

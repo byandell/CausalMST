@@ -1,0 +1,87 @@
+## Mediation
+
+```{r}
+mediate_obj <- CausalMST::mediate1_test(
+  med_ls, 
+  geno_max, 
+  pheno_data,
+  kinship[[1]],
+  covar,
+  med_ls$covar,
+  driver_med = probs_obj$probs[[chr_id]],
+  test = "wilc",
+  pos = pos_Mbp)
+
+```
+
+
+```{r}
+autoplot(mediate_obj)
+```
+
+```{r eval=FALSE}
+mediate1_test
+  cmst_pheno
+    cmst_default
+      mediationModels
+        med_fits
+          fitFunction
+        fit_models
+          comb_models
+          combo_models
+          combo_comps
+      testFunction <- wilcIUCMST, binomIUCMST, normJointIUCMST, normIUCMST
+        calcZ
+          calcICs
+            penalty
+        calcShat
+```
+
+Note: `fit_models` set up for 10 models and 7 comparisons. Only need 4 models and some of the comparisons, as used in `mediationModels`:
+
+```{r eval=FALSE}
+subset(models_par$models, 1:4)
+models_par$comps$LR[c("t.d_t", "mediation")]
+models_par$comp$LR["m.d_m"]
+models_par$models$coef$t.md_t.m[seq_len(ncol(driver))]
+models_par$models$coef$m.d_m[seq_len(ncol(driver))]
+```
+
+The `testFunction` uses various parts of the `subset(models_par$models, 1:4)`:
+
+```{r eval=FALSE}
+models$indLR)
+models$LR
+models$df
+```
+
+
+Utilities
+
+```{r eval=FALSE}
+fitFunction <- qtl2::fit1
+common_data (from qtl2pattern)
+covar_df_mx (from qtl2pattern)
+wh_sex(from qtl2pattern)
+```
+
+## Scatterplot
+
+```{r}
+scat_ls <- qtl2pattern::pull_mediator(mediate_obj, med_ls, patterns)
+```
+
+```{r}
+scat_dat <- CausalMST::med_scatter(geno_max, pheno_data, 
+                                   scat_ls$mediator,
+                                   kinship[[1]], 
+                                   covar, 
+                                   med_ls$covar,
+                                   qtl2::fit1,
+                                   sdp = scat_ls$sdp, 
+                                   allele = TRUE)
+```
+
+```{r}
+autoplot(scat_dat)
+```

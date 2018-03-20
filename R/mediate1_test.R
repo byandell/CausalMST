@@ -162,7 +162,7 @@ cmst_default <- function(object, driver, target,
   # CMST on key models. Pick first as best.
   out <- head(dplyr::rename(
     dplyr::filter(
-      testFunction(subset(models_par$models, 1:4)),
+      testFunction(models_par$models),
       pv == min(pv)),
     pvalue = pv), n = 1L)
   
@@ -170,7 +170,7 @@ cmst_default <- function(object, driver, target,
   out$mediation <- sum(models_par$comps$LR[c("t.d_t", "mediation")]) / log(10)
   
   # Mediator LOD
-  out$lod_med <- models_par$comp$LR["m.d_m"] / log(10)
+  out$lod_med <- models_par$comps$LR["m.d_m"] / log(10)
   
   # Coefficients
   coef_target <- as.data.frame(t(models_par$models$coef$t.md_t.m[seq_len(ncol(driver))]))
@@ -185,6 +185,9 @@ cmst_pheno <- function(object, driver, target,
                        fitFunction, testFunction,
                        common = TRUE) {
 
+  # Currently, mediate1_test uses elements of object[[2]] (columns of annot data frame)
+  # to assess TRUE/FALSE on covariate columns. This will likely change.
+  
   # Get covariate names appropriate for mediator 
   cov_names <- unlist(object[[2]][colnames(cov_med)])
   if(length(cov_names))
