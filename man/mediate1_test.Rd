@@ -5,8 +5,8 @@
 \title{Develop mediation models from driver, target and mediator}
 \usage{
 mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
-  cov_med = NULL, driver_med = NULL, test = c("wilc", "binom", "joint",
-  "norm"), pos = NULL, fitFunction = qtl2::fit1,
+  cov_med = NULL, driver_med = NULL, annot_med = NULL, test = c("wilc",
+  "binom", "joint", "norm"), pos = NULL, fitFunction = qtl2::fit1,
   data_type = c("phenotype", "expression"), ...)
 }
 \arguments{
@@ -22,6 +22,8 @@ mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
 
 \item{cov_med}{optional covariates for mediator}
 
+\item{driver_med}{optional driver matrix for mediators}
+
 \item{test}{Type of CMST test.}
 
 \item{pos}{Position of driver.}
@@ -31,6 +33,8 @@ mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
 \item{data_type}{Type of mediator data.}
 
 \item{...}{additional parameters}
+
+\item{annot_met}{optional annotation data frame for mediators}
 }
 \description{
 Develop mediation models from driver, target and mediator
