@@ -212,13 +212,14 @@ All of the elements of `annot` are passed allong to the `best` element of the `m
 
 ```{r}
 mediate_obj <- CausalMST::mediate1_test(
-  med_ls, 
+  med_ls[[1]], 
   geno_max, 
   pheno_data,
   kinship[[1]],
-  covar,
-  med_ls$covar,
+  covar_tar = covar,
+  covar_med = med_ls$covar,
   driver_med = probs_obj$probs[[chr_id]],
+  annot_med = med_ls[[2]],
   test = "wilc",
   pos = pos_Mbp)
 ```
