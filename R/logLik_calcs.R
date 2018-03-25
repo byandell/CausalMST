@@ -7,8 +7,8 @@
 #' 
 #' @return list of
 #' \itemize{
-#' \item{log.lik} log likelihood
-#' \item{vec.log.lik} vector of individual log likelihood components (density at y ~ Xb)
+#' \item{logLik} log likelihood
+#' \item{ind_logLik} vector of individual log likelihood components (density at y ~ Xb)
 #' \item{d} model degrees of freedom
 #' \item{RSS} residual sums of squares (optional)
 #' \
@@ -19,9 +19,10 @@ logLik_calcs <- function(y, X, ...) {
   dX <- ncol(X)
   qrX <- qr(X)
   b <- qr.coef(qrX, y)
-  RSS <- crossprod(y - X %*% b, y - X %*% b)
-  log.lik <- as.vector(- (n/2) - (n/2) * log(2 * pi) - (n/2) * log(RSS/n))
+  RSS <- y - X %*% b
+  RSS <- crossprod(RSS, RSS)
+  logLik <- as.vector(- (n/2) - (n/2) * log(2 * pi) - (n/2) * log(RSS/n))
   ss <- RSS/n
-  vec.log.lik <- dnorm(y, X %*% b, sqrt(ss), log = TRUE)
-  list(log.lik = log.lik, vec.log.lik = vec.log.lik, df = dX, RSS = RSS)
+  ind_logLik <- dnorm(y, X %*% b, sqrt(ss), log = TRUE)
+  list(logLik = logLik, ind_logLik = ind_logLik, df = dX, RSS = RSS)
 }

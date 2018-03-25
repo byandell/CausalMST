@@ -1,4 +1,8 @@
-GetLogLik <- function(driver, outcome, addcov, intcov, ll_function = logLik_calcs, ...) {
+GetLogLik <- function(driver, outcome,
+                      addcov = NULL, intcov = NULL,
+                      ll_function = logLik_calcs,
+                      weigths = NULL,
+                      ...) {
 
   # Construct design matrix X
   if(is.null(driver))

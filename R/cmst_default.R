@@ -28,11 +28,11 @@ cmst_default <- function(object, driver, target,
       pv == min(pv)),
     pvalue = pv), n = 1L)
   
-  # Mediation LOD
-  out$mediation <- sum(models_par$comps$LR[c("t.d_t", "mediation")]) / log(10)
+  # Mediation LR
+  out$mediation <- sum(models_par$comps$LR[c("t.d_t", "mediation")])
   
-  # Mediator LOD
-  out$lod_med <- models_par$comps$LR["m.d_m"] / log(10)
+  # Mediator LR
+  out$LRmed <- models_par$comps$LR["m.d_m"]
   
   # Coefficients
   coef_target <- as.data.frame(t(models_par$models$coef$t.md_t.m[seq_len(ncol(driver))]))

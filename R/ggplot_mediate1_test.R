@@ -1,15 +1,13 @@
 #' @export
-plot.mediate1_test <- function(x, ...)
-  ggplot2::autoplot(x, ...)
-#' @export
 autoplot.mediate1_test <- function(x, ...)
-  plot_mediate1_test(x, ...)
+  ggplot_mediate1_test(x, ...)
 #' @export
-plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","alleles","mediator"),
+ggplot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","alleles","mediator"),
                                main = params$target,
                                maxPvalue = 0.1, 
                                local_only = FALSE, 
                                significant = TRUE,
+                               lod = TRUE,
                                ...) {
   type <- match.arg(type)
   if(is.null(local_only))
@@ -18,11 +16,16 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
     significant <- TRUE
   
   params <- x$params
-  pos_t <- params$pos
-  lod_t <- params$lod
+  pos_tar <- params$pos
+  unmediated <- params$LR
   
   targetFit <- x$targetFit
   x <- x$best
+  
+  if(lod) {
+    unmediated <- unmediated / log(10)
+    x$mediation <- x$mediation / log(10)
+  }
   
   if(!("symbol" %in% names(x)))
     x <- dplyr::rename(x, symbol = id)
@@ -74,16 +77,16 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
                ggplot2::facet_grid(~triad, scales = "free_x") +
                ggplot2::xlab("Position (Mbp)") +
                ggplot2::ylab("-log10 of p-value")
-             if(!is.null(pos_t))
+             if(!is.null(pos_tar))
                p <- p +
-                 ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
+                 ggplot2::geom_vline(xintercept = pos_tar, col = "darkgrey")
            },
            pvalue_lod = {
              p <- ggplot2::ggplot(x) +
                ggplot2::aes(y=mediation, x=-log10(pvalue), col=biotype) +
                ggplot2::aes(symbol=symbol, position=pos, QTL = QTL) +
                ggplot2::facet_grid(~triad, scales = "free_x") +
-               ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
+               ggplot2::geom_hline(yintercept = unmediated, col = "darkgrey") +
                ggplot2::xlab("-log10 of p-value") +
                ggplot2::ylab("Mediation LOD")
            },
@@ -91,14 +94,14 @@ plot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","
              p <- ggplot2::ggplot(x) + 
                ggplot2::aes(y=mediation, x=pos, col=biotype) +
                ggplot2::aes(symbol=symbol, pvalue=pvalue, QTL = QTL) +
-               ggplot2::geom_hline(yintercept = lod_t, col = "darkgrey") +
+               ggplot2::geom_hline(yintercept = unmediated, col = "darkgrey") +
                ggplot2::facet_grid(~triad, scales = "free_x") +
                ggplot2::xlab("Position (Mbp)") +
                ggplot2::ylab("Mediation LOD")
 #               ggplot2::scale_color_manual(values = cols)
-             if(!is.null(pos_t))
+             if(!is.null(pos_tar))
                p <- p +
-                 ggplot2::geom_vline(xintercept = pos_t, col = "darkgrey")
+                 ggplot2::geom_vline(xintercept = pos_tar, col = "darkgrey")
            })
     if(exists("shapes")) {
       p <- p + ggplot2::geom_point(aes(shape = qtl_type), size = 2) +

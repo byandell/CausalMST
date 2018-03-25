@@ -47,15 +47,9 @@ med_fits <- function(driver, target, mediator, fitFunction,
   # Transpose list
   fits <- purrr::transpose(fits)
   
-  fits$lod <- unlist(fits$lod)
-  fits$ind_lod <- as.matrix(as.data.frame(fits$ind_lod))
-  
-  # Add model degrees of freedom
-  ndt <- ncol(driver) - 1
-  ndm <- ncol(driver_med) - 1
-  nmed <- ncol(mediator)
-  fits$df <- c(rep(ndt, 2), ndm, nmed, nmed)
-  names(fits$df) <- names(fits$lod)
-  
+  fits$LR <- unlist(fits$LR)
+  fits$indLR <- as.matrix(as.data.frame(fits$indLR))
+  fits$df <- unlist(fits$df)
+
   fits
 }

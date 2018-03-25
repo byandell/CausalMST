@@ -198,20 +198,20 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
       (ll_list[[models$first[i]]]$RSS / TSS)
   }
   
-  loglik <- model.dim <- rep(0,4)
-  vec.logLik <- matrix(0, n_ind, 4)
-  names(loglik) <- names(model.dim) <- colnames(vec.logLik) <- models$model
+  logLik <- model.dim <- rep(0,4)
+  ind_logLik <- matrix(0, n_ind, 4)
+  names(logLik) <- names(model.dim) <- colnames(ind_logLik) <- models$model
   for(i in 1:4) {
     chain <- model_chain(ll_list[[models$first[i]]], 
                          ll_list[[models$second[i]]])
-    loglik[models$model[i]] <- chain$loglik
+    logLik[models$model[i]] <- chain$logLik
     model.dim[models$model[i]] <- 2 + chain$df
-    vec.logLik[, models$model[i]] <- chain$vec.logLik
+    ind_logLik[, models$model[i]] <- chain$ind_logLik
   }
   
   models <- list(
-    LR = loglik,
-    indLR = as.data.frame(vec.logLik),
+    LR = logLik,
+    indLR = as.data.frame(ind_logLik),
     df = model.dim
   )
 
@@ -219,10 +219,10 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
               addcov = addcov,
               intcov = intcov,
               n.ind = n_ind,
-              loglik = loglik,  
+              logLik = logLik,  
               model.dim = model.dim, 
               R2 = R2,
-              S.hat = calcShat(vec.logLik))
+              S.hat = calcShat(ind_logLik))
   
   # Set up information criteria.
   if("bic" %in% penalty & ("par" %in% method | "joint" %in% method)) {

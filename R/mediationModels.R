@@ -35,13 +35,10 @@ fit_models <- function(fits, combos = combo_models()) {
   models <-
     purrr::transpose(
       purrr::map(combos,
-                 combine_models, fits[c("lod", "ind_lod", "df")]))
+                 combine_models, fits[c("LR", "indLR", "df")]))
 
-  # Change LOD to LR
-  names(models) <- stringr::str_replace(names(models), "lod", "LR")
-  names(models) <- stringr::str_replace(names(models), "_LR", "LR")
-  models$LR <- unlist(models$LR) * log(10)
-  models$indLR <- as.data.frame(models$indLR) * log(10)
+  models$LR <- unlist(models$LR)
+  models$indLR <- as.data.frame(models$indLR)
   
   models$df <- unlist(models$df)
   models$coef <- fits$coef
@@ -62,15 +59,15 @@ combo_models <- function() {
 }
 combine_models <- function(combos, fits) {
   
-  list(lod = sum(fits$lod * combos),
-       ind_lod = fits$ind_lod %*% combos,
+  list(LR = sum(fits$LR * combos),
+       indLR = fits$indLR %*% combos,
        df = sum(fits$df * combos),
        coef = fits$coef)
 }
 
 fit_comps <- function(fits, combos = combo_comps()) {
   
-  comps <- list(LR = apply(fits$lod * combos, 2, sum) * log(10))
+  comps <- list(LR = apply(fits$LR * combos, 2, sum))
 
   class(comps) <- c("cmst_models", class(comps))
   

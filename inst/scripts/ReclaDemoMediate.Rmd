@@ -212,10 +212,10 @@ All of the elements of `annot` are passed allong to the `best` element of the `m
 
 ```{r}
 mediate_obj <- CausalMST::mediate1_test(
-  med_ls[[1]], 
-  geno_max, 
-  pheno_data,
-  kinship[[1]],
+  mediator = med_ls[[1]], 
+  driver = geno_max, 
+  target = pheno_data,
+  kinship = kinship[[1]],
   covar_tar = covar,
   covar_med = med_ls$covar,
   driver_med = probs_obj$probs[[chr_id]],
@@ -225,6 +225,8 @@ mediate_obj <- CausalMST::mediate1_test(
 ```
 
 The plot uses additional information from the `annot`, particularly when using `plotly`. These include `symbol`, `pos`, `QTL` and `biotype`. These are rather arcane at the moment. To be improved.
+
+**Problem is that there are now more points. Somehow I changed things!**
 
 ```{r}
 autoplot(mediate_obj)

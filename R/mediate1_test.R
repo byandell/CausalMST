@@ -4,7 +4,7 @@
 #'
 #' @param driver vector or matrix with driver values
 #' @param target vector or 1-column matrix with target values
-#' @param mediator List with mediators and annotation.
+#' @param mediator matrix of mediators
 #' @param kinship optional kinship matrix among individuals
 #' @param cov_tar optional covariates for target
 #' @param cov_med optional covariates for mediator
@@ -32,9 +32,9 @@
 mediate1_test <- function(mediator, driver, target,
                           kinship=NULL, cov_tar=NULL, cov_med=NULL, 
                           driver_med = NULL, annot_med = NULL,
-                          test = c("wilc","binom","joint","norm"),
+                          test = c("wilcoxon","binomial","joint","normal"),
                           pos = NULL,
-                          fitFunction = qtl2::fit1,
+                          fitFunction = fitQtl2,
                           data_type = c("phenotype","expression"),
                           ...) {
   
@@ -53,18 +53,18 @@ mediate1_test <- function(mediator, driver, target,
   
   test <- match.arg(test)
   testfn <- switch(test,
-                   wilc = CausalMST::wilcIUCMST,
-                   binom = CausalMST::binomIUCMST,
-                   joint = CausalMST::normJointIUCMST,
-                   norm = CausalMST::normIUCMST)
+                   wilcoxon = wilcIUCMST,
+                   binomial = binomIUCMST,
+                   joint    = normJointIUCMST,
+                   normal   = normIUCMST)
 
-  pos_t <- pos
+  pos_tar <- pos
   
   # Make sure covariates are numeric
   cov_tar <- covar_df_mx(cov_tar)
 
   scan_max <- fitFunction(driver, target, kinship, cov_tar)
-  lod_t <- scan_max$lod
+  LR_tar <- scan_max$LR
   
   use_1_driver <- is.null(annot_med$driver) | is.null(driver_med)
   if(use_1_driver & !is.null(driver_med))
@@ -92,16 +92,14 @@ mediate1_test <- function(mediator, driver, target,
   # Reorganize annotation and mediator data.
   # Need to make sure elements of mediator have same ids.
   mediator <- as.data.frame(commons$mediator)
-  annot_med <- 
-    purrr::transpose(
-      dplyr::filter(
-        annot_med,
-        id %in% colnames(mediator)))
+  annot_med <- dplyr::filter(
+    annot_med,
+    id %in% colnames(mediator))
 
   # Workhorse: CMST on each mediator.
   best <- purrr::map(
     purrr::transpose(list(mediator = mediator,
-                          annotation = annot_med)),
+                          annotation = purrr::transpose(annot_med))),
     cmstfn, driver, target, 
     kinship, cov_tar, cov_med,
     driver_med,
@@ -119,10 +117,10 @@ mediate1_test <- function(mediator, driver, target,
   
   result <- list(
     best = dplyr::arrange(
-      dplyr::left_join(best, annotation, by = "id"),
+      dplyr::left_join(best, annot_med, by = "id"),
       pvalue),
-    params = list(pos = pos_t,
-                  lod = lod_t,
+    params = list(pos = pos_tar,
+                  LR = LR_tar,
                   target = colnames(target),
                   data_type = data_type),
     targetFit = scan_max)

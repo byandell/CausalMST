@@ -5,12 +5,12 @@
 \title{Develop mediation models from driver, target and mediator}
 \usage{
 mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
-  cov_med = NULL, driver_med = NULL, annot_med = NULL, test = c("wilc",
-  "binom", "joint", "norm"), pos = NULL, fitFunction = qtl2::fit1,
-  data_type = c("phenotype", "expression"), ...)
+  cov_med = NULL, driver_med = NULL, annot_med = NULL,
+  test = c("wilcoxon", "binomial", "joint", "normal"), pos = NULL,
+  fitFunction = fitQtl2, data_type = c("phenotype", "expression"), ...)
 }
 \arguments{
-\item{mediator}{List with mediators and annotation.}
+\item{mediator}{matrix of mediators}
 
 \item{driver}{vector or matrix with driver values}
 

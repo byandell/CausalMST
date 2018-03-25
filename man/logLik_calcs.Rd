@@ -16,8 +16,8 @@ logLik_calcs(y, X, ...)
 \value{
 list of
 \itemize{
-\item{log.lik} log likelihood
-\item{vec.log.lik} vector of individual log likelihood components (density at y ~ Xb)
+\item{logLik} log likelihood
+\item{ind_logLik} vector of individual log likelihood components (density at y ~ Xb)
 \item{d} model degrees of freedom
 \item{RSS} residual sums of squares (optional)
 \
