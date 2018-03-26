@@ -157,6 +157,9 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
                  penalty = c("bic", "aic", "both"), 
                  fitFunction, ...) {
   
+  # Want to roll more of this into using cmst_default.
+  # May need to rethink comparison of models a bit.
+  
   resp_names <- names(outcomes)
   if(length(resp_names) != 2)
     stop("only two outcomes for cmst1 call")

@@ -66,8 +66,6 @@ print(ggplot(dat, aes(y=y1.z, x=y2.y1, col=factor(z))) +
                       layout.pos.col = 2))
 ```
 
-**Some challenge with normJointIUCMST with new protocol.**
-
 ```{r}
 (result <- cmst(driver = as.matrix(dat$z), outcomes = dat[-1]))
 ```

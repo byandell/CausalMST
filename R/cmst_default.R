@@ -14,31 +14,67 @@ cmst_default <- function(object, driver, target,
   # Make sure covariates are numeric
   cov_med <- covar_df_mx(cov_med)
   
-  # Fit mediation models.
-  models_par <- mediationModels(driver, target, mediator, 
-                                fitFunction,
-                                kinship, cov_tar, cov_med,
-                                driver_med,
-                                common = common)
+
+  # Fit models
+  fits <- med_fits(driver, target, mediator, fitFunction,
+                   kinship, cov_tar, cov_med, driver_med,
+                   common = common)
   
+  combos <- combo_models()
+  models <-
+    purrr::transpose(
+      purrr::map(combos[,1:4],
+                 combine_models, fits[c("LR", "indLR", "df")]))
+  
+  models$LR <- unlist(models$LR)
+  models$indLR <- as.data.frame(models$indLR)
+  models$df <- unlist(models$df)
+  models$coef <- fits$coef
+  
+  comps <- list(LR = apply(fits$LR * combos[,5:7], 2, sum))
+
   # CMST on key models. Pick first as best.
   out <- head(dplyr::rename(
     dplyr::filter(
-      testFunction(models_par$models),
+      testFunction(models),
       pv == min(pv)),
     pvalue = pv), n = 1L)
   
   # Mediation LR
-  out$mediation <- sum(models_par$comps$LR[c("t.d_t", "mediation")])
+  out$mediation <- sum(comps$LR[c("t.d_t", "mediation")])
   
   # Mediator LR
-  out$LRmed <- models_par$comps$LR["m.d_m"]
+  out$LRmed <- comps$LR["m.d_m"]
   
   # Coefficients
-  coef_target <- as.data.frame(t(models_par$models$coef$t.md_t.m[seq_len(ncol(driver))]))
-  coef_mediator <- as.data.frame(t(models_par$models$coef$m.d_m[seq_len(ncol(driver))]))
+  coef_target <- as.data.frame(t(models$coef$t.md_t.m[seq_len(ncol(driver))]))
+  coef_mediator <- as.data.frame(t(models$coef$m.d_m[seq_len(ncol(driver))]))
   names(coef_mediator) <- paste0(names(coef_mediator), "_m")
+  
   dplyr::bind_cols(out, coef_target, coef_mediator)
+}
+combo_models <- function() {
+  combos <- 
+    matrix(
+      0, 5, 7,
+      dimnames = list(
+        c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.t_m"),
+        c("t.d_m.t", "m.d_t.m", "t.d_m.d", "t.md_m.d",
+          "t.d_t", "m.d_m", "mediation")))
+  combos[c(1,5), 1] <- 1        # causal
+  combos[c(3,4), 2] <- 1        # reactive
+  combos[c(1,3), 3] <- 1        # independent
+  combos[   2:4, 4] <- 1        # correlated
+  combos[     1, 5] <- 1        # target contrast
+  combos[     3, 6] <- 1        # mediator contrast
+  combos[   1:2, 7] <- c(-1, 1) # mediation contrast
+  as.data.frame(combos)
+}
+combine_models <- function(combos, fits) {
+  list(LR = sum(fits$LR * combos),
+       indLR = fits$indLR %*% combos,
+       df = sum(fits$df * combos),
+       coef = fits$coef)
 }
 
 cmst_pheno <- function(object, driver, target, 

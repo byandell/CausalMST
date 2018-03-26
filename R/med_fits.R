@@ -17,39 +17,17 @@ med_fits <- function(driver, target, mediator, fitFunction,
   if(is.null(driver_med))
     driver_med <- driver
   
-  fits <- list(
-    t.d_t = 
-      fitFunction(driver,
-                  target,
-                  kinship,
-                  cov_tar),
-    t.md_t.m =
-      fitFunction(driver,
-                  target,
-                  kinship,
-                  cbind(cov_tar, mediator)),
-    m.d_m =
-      fitFunction(driver_med,
-                  mediator,
-                  kinship,
-                  cov_med),
-    t.m_t =
-      fitFunction(cbind(1, mediator),
-                  target,
-                  kinship,
-                  cov_tar),
-    m.t_m =
-      fitFunction(cbind(1, target),
-                  mediator,
-                  kinship,
-                  cov_med))
-  
-  # Transpose list
-  fits <- purrr::transpose(fits)
-  
+  # Fit mediation models.
+  # Transpose list of model fits
+  fits <- purrr::transpose(list(
+    t.d_t    = fitFunction(driver, target, kinship, cov_tar),
+    t.md_t.m = fitFunction(driver, target, kinship, cbind(cov_tar, mediator)),
+    m.d_m    = fitFunction(driver_med, mediator, kinship, cov_med),
+    t.m_t    = fitFunction(cbind(1, mediator), target, kinship, cov_tar),
+    m.t_m    = fitFunction(cbind(1, target), mediator, kinship, cov_med)))
   fits$LR <- unlist(fits$LR)
   fits$indLR <- as.matrix(as.data.frame(fits$indLR))
   fits$df <- unlist(fits$df)
-
+  
   fits
 }

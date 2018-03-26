@@ -226,8 +226,6 @@ mediate_obj <- CausalMST::mediate1_test(
 
 The plot uses additional information from the `annot`, particularly when using `plotly`. These include `symbol`, `pos`, `QTL` and `biotype`. These are rather arcane at the moment. To be improved.
 
-**Problem is that there are now more points. Somehow I changed things!**
-
 ```{r}
 autoplot(mediate_obj)
 ```
