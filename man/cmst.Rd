@@ -6,7 +6,7 @@
 \usage{
 cmst(driver, outcomes, covariates = NULL, addcov = NULL, intcov = NULL,
   method = c("par", "non.par", "joint", "all"), penalty = c("bic", "aic",
-  "both"), verbose = FALSE, ll_function = logLik_calcs, ...)
+  "both"), verbose = FALSE, fitFunction = fitDefault, ...)
 }
 \arguments{
 \item{driver}{data frame with drivers}
@@ -21,9 +21,9 @@ cmst(driver, outcomes, covariates = NULL, addcov = NULL, intcov = NULL,
 
 \item{verbose}{verbose output if \code{TRUE}}
 
-\item{ll_function}{log likelihood calculation function; see \code{\link{logLik_calcs}}}
+\item{fitFunction}{log likelihood calculation function; see \code{\link{fitDefault}}}
 
-\item{...}{possible additional arguments to \code{ll_function}}
+\item{...}{possible additional arguments}
 
 \item{resp_names}{response names}
 }

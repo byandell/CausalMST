@@ -22,8 +22,8 @@
 #' @param method method for CMST test (parametric, non-parametric, joint or all three); can provide more than one value.
 #' @param penalty type of information criteria penalty (for BIC or AIC)
 #' @param verbose verbose output if \code{TRUE}
-#' @param ll_function log likelihood calculation function; see \code{\link{logLik_calcs}}
-#' @param ... possible additional arguments to \code{ll_function}
+#' @param fitFunction log likelihood calculation function; see \code{\link{fitDefault}}
+#' @param ... possible additional arguments
 #' 
 #' @export
 #' @importFrom dplyr tbl_df
@@ -34,7 +34,7 @@ cmst <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
                  method = c("par", "non.par", "joint", "all"),
                  penalty = c("bic", "aic", "both"),
                  verbose = FALSE,
-                 ll_function = logLik_calcs,
+                 fitFunction = fitDefault,
                  ...) {
   
   if(any(is.na(c(driver))) | 
@@ -95,7 +95,7 @@ cmst <- function(driver, outcomes, covariates=NULL, addcov=NULL, intcov=NULL,
     if(verbose)
       cat("outcomes2 = ", k, "\n")   
     aux[[k]] <- cmst1(driver, outcomes[, c(1, 1 + k)], addcov, intcov, 
-                      method, penalty, ll_function, ...)
+                      method, penalty, fitFunction, ...)
   }
   
   models <- model_setup()
@@ -155,7 +155,7 @@ print.cmst <- function(x, ...) {
 cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
                  method = c("par", "non.par", "joint", "all"),
                  penalty = c("bic", "aic", "both"), 
-                 ll_function, ...) {
+                 fitFunction, ...) {
   
   resp_names <- names(outcomes)
   if(length(resp_names) != 2)
@@ -167,25 +167,20 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
   dfcol <- function(x, y, i) as.data.frame(cbind(x, as.matrix(y[,i, drop = FALSE])))
   ll_list <- list()
   ll_list[["y1.z"]] <-   
-    GetLogLik(driver, outcomes[[1]], 
-              addcov[[1]], intcov[[1]], 
-              ll_function, ...)
+    fitFunction(driver, outcomes[[1]], 
+                addcov[[1]], intcov[[1]])
   ll_list[["y2.z"]] <-   
-    GetLogLik(driver, outcomes[[2]], 
-              addcov[[2]], intcov[[2]], 
-              ll_function, ...)
+    fitFunction(driver, outcomes[[2]], 
+                addcov[[2]], intcov[[2]])
   ll_list[["y1.y2"]] <-  
-    GetLogLik(NULL,   outcomes[[1]], 
-              dfcol(addcov[[1]], outcomes, 2), intcov[[1]], 
-              ll_function, ...)
+    fitFunction(as.matrix(outcomes[[2]]),   outcomes[[1]], 
+                addcov[[1]], intcov[[1]])
   ll_list[["y2.y1"]] <-  
-    GetLogLik(NULL,   outcomes[[2]], 
-              dfcol(addcov[[2]], outcomes, 1), intcov[[2]], 
-              ll_function, ...)
+    fitFunction(as.matrix(outcomes[[1]]),   outcomes[[2]], 
+                addcov[[2]], intcov[[2]])
   ll_list[["y2.y1z"]] <- 
-    GetLogLik(driver, outcomes[[2]], 
-              dfcol(addcov[[2]], outcomes, 1), intcov[[2]], 
-              ll_function, ...)
+    fitFunction(as.matrix(cbind(driver, outcomes[[1]])), outcomes[[2]], 
+                addcov[[2]], intcov[[2]])
   
   models <- model_setup()
   
@@ -198,20 +193,20 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
       (ll_list[[models$first[i]]]$RSS / TSS)
   }
   
-  logLik <- model.dim <- rep(0,4)
-  ind_logLik <- matrix(0, n_ind, 4)
-  names(logLik) <- names(model.dim) <- colnames(ind_logLik) <- models$model
+  LR <- model.dim <- rep(0,4)
+  indLR <- matrix(0, n_ind, 4)
+  names(LR) <- names(model.dim) <- colnames(indLR) <- models$model
   for(i in 1:4) {
     chain <- model_chain(ll_list[[models$first[i]]], 
                          ll_list[[models$second[i]]])
-    logLik[models$model[i]] <- chain$logLik
+    LR[models$model[i]] <- chain$LR
     model.dim[models$model[i]] <- 2 + chain$df
-    ind_logLik[, models$model[i]] <- chain$ind_logLik
+    indLR[, models$model[i]] <- chain$indLR
   }
   
   models <- list(
-    LR = logLik,
-    indLR = as.data.frame(ind_logLik),
+    LR = LR,
+    indLR = as.data.frame(indLR),
     df = model.dim
   )
 
@@ -219,10 +214,10 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
               addcov = addcov,
               intcov = intcov,
               n.ind = n_ind,
-              logLik = logLik,  
+              LR = LR,  
               model.dim = model.dim, 
               R2 = R2,
-              S.hat = calcShat(ind_logLik))
+              S.hat = calcShat(indLR))
   
   # Set up information criteria.
   if("bic" %in% penalty & ("par" %in% method | "joint" %in% method)) {

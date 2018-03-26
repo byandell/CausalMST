@@ -55,16 +55,18 @@ grid::pushViewport(
     layout = grid::grid.layout(ncol = 2)))
 
 print(ggplot(dat, aes(x=y1.z, y=y2.y1, col=factor(z))) + 
-  geom_point(shape = 1) +
+  geom_point(alpha = 0.2) +
   geom_smooth(method = "lm", se = FALSE),
   vp = grid::viewport(layout.pos.row = 1,
                       layout.pos.col = 1))
 print(ggplot(dat, aes(y=y1.z, x=y2.y1, col=factor(z))) + 
-  geom_point(shape = 1) +
+  geom_point(alpha = 0.2) +
   geom_smooth(method = "lm", se = FALSE),
   vp = grid::viewport(layout.pos.row = 1,
                       layout.pos.col = 2))
 ```
+
+**Some challenge with normJointIUCMST with new protocol.**
 
 ```{r}
 (result <- cmst(driver = as.matrix(dat$z), outcomes = dat[-1]))

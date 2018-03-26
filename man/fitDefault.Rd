@@ -5,7 +5,7 @@
 \title{Fit target relative to driver}
 \usage{
 fitDefault(driver, target, kinship = NULL, addcovar = NULL,
-  nullcovar = NULL, intcovar = NULL, weights = NULL)
+  intcovar = NULL, weights = NULL, ...)
 }
 \arguments{
 \item{driver}{A matrix of drivers, individuals x drivers}
@@ -16,15 +16,15 @@ fitDefault(driver, target, kinship = NULL, addcovar = NULL,
 
 \item{addcovar}{An optional matrix of additive covariates.}
 
-\item{nullcovar}{An optional matrix of additional additive
-covariates that are used under the null hypothesis (of no driver)
-but not under the alternative (with driver).}
-
 \item{intcovar}{An optional matrix of interactive covariates.}
 
 \item{weights}{An optional vector of positive weights for the
 individuals. As with the other inputs, it must have `names`
 for individual identifiers. Ignored if `kinship` is provided.#'}
+
+\item{nullcovar}{An optional matrix of additional additive
+covariates that are used under the null hypothesis (of no driver)
+but not under the alternative (with driver).}
 }
 \value{
 A list containing

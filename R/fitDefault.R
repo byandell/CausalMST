@@ -31,12 +31,53 @@
 fitDefault <- function(driver,
                   target,
                   kinship = NULL,
-                  addcovar = NULL, nullcovar=NULL,
-                  intcovar=NULL, weights=NULL) {
-  ll1 <- GetLogLik(driver, target, addcovar, intcovar)
-  ll0 <- GetLogLik(NULL, target, cbind(addcovar, nullcovar))
+                  addcovar = NULL,
+                  intcovar=NULL, weights=NULL,
+                  ...) {
+
+  # Construct design matrix X
+  if(is.null(driver))
+    driver <- matrix(1, length(target), 1)
   
-  list(LR = ll1$logLik - ll0$logLik,
-       indLR = ll1$ind_logLik - ll0$ind_logLik,
-       df = ll1$df - ll0$df)
+  # Form model matrix from additive covariates.
+  if(!is.null(addcovar)) {
+    form <- as.formula(paste(" ~ ", paste(colnames(addcovar), collapse = "+")))
+    X <- model.matrix(form, data = addcovar)[,-1]
+    if(is.null(dim(X))) {
+      X <- as.matrix(X)
+    }
+  } else 
+    X <- NULL
+  
+  # Add interactive covaraties.
+  if(!is.null(intcovar)) {
+    if(ncol(driver) > 1) {
+      int.sub.matrix <- 
+        model.matrix(as.formula(paste("~", colnames(intcovar))), intcovar)[,-1]
+      driverbyintcovar <- driver[,-1] * int.sub.matrix
+      X <- cbind(driver, X, driverbyintcovar)
+    } else {
+      X <- cbind(driver, X)
+    }
+  } else {
+    if(!is.null(addcovar)){
+      X <- cbind(driver, X)
+    } else {
+      X <- driver
+    }
+  }
+  
+  # Calculate log likelihood components
+  n <- length(target)
+  dX <- ncol(X)
+  qrX <- qr(X)
+  b <- qr.coef(qrX, target)
+  RSS <- target - X %*% b
+  RSS <- crossprod(RSS, RSS)
+
+  list(LR = as.vector(- (n/2) - (n/2) * log(2 * pi) - (n/2) * log(RSS/n)),
+       indLR = dnorm(target, X %*% b, sqrt(RSS / n), log = TRUE),
+       df = dX,
+       RSS = RSS)
 }
+

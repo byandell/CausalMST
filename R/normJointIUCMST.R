@@ -21,6 +21,7 @@ normJointIUCMST <- function(models,
       function(x) x[[2]]) == alt) - 1
     corHat((ss %o% ss) * Shat[pair,pair])
   }
+  
   dplyr::mutate(
     dplyr::ungroup(
       dplyr::summarize(
