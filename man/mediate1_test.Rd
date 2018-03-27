@@ -4,23 +4,25 @@
 \alias{mediate1_test}
 \title{Develop mediation models from driver, target and mediator}
 \usage{
-mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
-  cov_med = NULL, driver_med = NULL, annot_med = NULL,
+mediate1_test(target, mediator, annotation, driver, cov_tar = NULL,
+  cov_med = NULL, kinship = NULL, driver_med = NULL,
   test = c("wilcoxon", "binomial", "joint", "normal"), pos = NULL,
   fitFunction = fitQtl2, data_type = c("phenotype", "expression"), ...)
 }
 \arguments{
-\item{mediator}{matrix of mediators}
-
-\item{driver}{vector or matrix with driver values}
-
 \item{target}{vector or 1-column matrix with target values}
 
-\item{kinship}{optional kinship matrix among individuals}
+\item{mediator}{matrix of mediators}
+
+\item{annotation}{optional annotation data frame for mediators}
+
+\item{driver}{vector or matrix with driver values}
 
 \item{cov_tar}{optional covariates for target}
 
 \item{cov_med}{optional covariates for mediator}
+
+\item{kinship}{optional kinship matrix among individuals}
 
 \item{driver_med}{optional driver matrix for mediators}
 
@@ -33,8 +35,6 @@ mediate1_test(mediator, driver, target, kinship = NULL, cov_tar = NULL,
 \item{data_type}{Type of mediator data.}
 
 \item{...}{additional parameters}
-
-\item{annot_met}{optional annotation data frame for mediators}
 }
 \description{
 Develop mediation models from driver, target and mediator

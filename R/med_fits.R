@@ -4,8 +4,8 @@ med_fits <- function(driver, target, mediator, fitFunction,
                      common = FALSE, ...) {
   
   if(!common) {
-    commons <- common_data(driver, target, mediator,
-                           kinship, cov_tar, cov_med, driver_med)
+    commons <- common_data(target, mediator, driver,
+                           cov_tar, cov_med, kinship, driver_med)
     driver <- commons$driver
     target <- commons$target
     mediator <- commons$mediator

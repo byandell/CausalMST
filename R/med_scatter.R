@@ -25,8 +25,8 @@ med_scatter <- function(driver, target, mediator,
   cov_tar <- covar_df_mx(cov_tar)
   cov_med <- covar_df_mx(cov_med)
 
-  commons <- common_data(driver, target, mediator,
-                         kinship, cov_tar, cov_med)
+  commons <- common_data(target, mediator, driver, 
+                         cov_tar, cov_med, kinship)
   
   cov_names <- names(cov_med)[!(names(cov_med) %in% names(cov_tar))]
   

@@ -1,5 +1,5 @@
-common_data <- function(driver, target, mediator,
-                        kinship=NULL, cov_tar=NULL, cov_med=NULL,
+common_data <- function(target, mediator, driver,
+                        cov_tar=NULL, cov_med=NULL, kinship=NULL,
                         driver_med=NULL,
                         common = TRUE,
                         minN = 100, minCommon = 0.9) {
