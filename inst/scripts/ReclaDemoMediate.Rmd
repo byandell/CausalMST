@@ -1,5 +1,5 @@
 ---
-title: "Recla qtl2shiny Demo Mediation"
+title: "Recla Demo Mediation"
 author: "Brian S. Yandell"
 date: "`r format(Sys.Date(), '%d %b %Y')`"
 output: html_document
@@ -211,7 +211,7 @@ The `annot$driver` is used in one-to-one fashion with columns of `pheno` as the 
 All of the elements of `annot` are passed allong to the `best` element of the `mediate1_test` list returned by `CausalMST::mediate1_test()`. The `mediate1_test` also has elements `params` and `targetFit`. The `params` element includes the `pos` and `lod` for the `target`, which are used for plotting. There is currently no `summary` for a `mediate1_test` object.
 
 ```{r}
-mediate_obj <- CausalMST::mediate1_test(
+mediate_obj <- CausalMST::mediation_test(
   target = pheno_data,
   mediator = med_ls[[1]], 
   annotation = med_ls[[2]],

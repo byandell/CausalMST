@@ -83,7 +83,7 @@ cmst_pheno <- function(object, driver, target,
                        fitFunction, testFunction,
                        common = TRUE) {
   
-  # Currently, mediate1_test uses elements of object[[2]] (columns of annot data frame)
+  # Currently, mediation_test uses elements of object[[2]] (columns of annot data frame)
   # to assess TRUE/FALSE on covariate columns. This will likely change.
   
   # Get covariate names appropriate for mediator 

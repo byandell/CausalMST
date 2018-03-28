@@ -29,7 +29,7 @@
 #'
 #' @export
 #'
-mediate1_test <- function(target, mediator, annotation, driver,
+mediation_test <- function(target, mediator, annotation, driver,
                           cov_tar=NULL, cov_med=NULL, kinship=NULL,
                           driver_med = NULL,
                           test = c("wilcoxon","binomial","joint","normal"),
@@ -125,11 +125,11 @@ mediate1_test <- function(target, mediator, annotation, driver,
                   data_type = data_type),
     targetFit = scan_max)
     
-  class(result) <- c("mediate1_test", class(result))
+  class(result) <- c("mediation_test", class(result))
   result
 }
 #' @export
-subset.mediate1_test <- function(object, not_type, ...) {
+subset.mediation_test <- function(object, not_type, ...) {
   attrc <- class(object)
   object$best <- dplyr::filter(object$best, 
                                biotype != not_type)

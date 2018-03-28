@@ -1,8 +1,8 @@
 #' @export
-autoplot.mediate1_test <- function(x, ...)
-  ggplot_mediate1_test(x, ...)
+autoplot.mediation_test <- function(x, ...)
+  ggplot_mediation_test(x, ...)
 #' @export
-ggplot_mediate1_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","alleles","mediator"),
+ggplot_mediation_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod","alleles","mediator"),
                                main = params$target,
                                maxPvalue = 0.1, 
                                local_only = FALSE, 
