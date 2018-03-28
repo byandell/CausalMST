@@ -137,3 +137,18 @@ subset.mediation_test <- function(object, not_type, ...) {
   
   object
 }
+#' @export
+summary.mediation_test <- function(object, ...) {
+  dplyr::select(
+    dplyr::mutate(
+      dplyr::arrange(
+        mediate_obj$best,
+        lod),
+      mediation = mediation / log(10),
+      pvalue = signif(pvalue, 3),
+      pos = round(pos, 2),
+      mediation = signif(mediation, 3),
+      LRmed = signif(LRmed, 3)),
+    id, pos, mediation, triad, pvalue, LRmed, lod, chr,
+    dplyr::everything())
+}

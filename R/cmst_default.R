@@ -13,7 +13,6 @@ cmst_default <- function(object, driver, target,
   
   # Make sure covariates are numeric
   cov_med <- covar_df_mx(cov_med)
-  
 
   # Fit models
   fits <- med_fits(driver, target, mediator, fitFunction,
@@ -31,7 +30,7 @@ cmst_default <- function(object, driver, target,
   models$df <- unlist(models$df)
   models$coef <- fits$coef
   
-  comps <- list(LR = apply(fits$LR * combos[,5:7], 2, sum))
+  compsLR <- apply(fits$LR * combos[,5:7], 2, sum)
 
   # CMST on key models. Pick first as best.
   out <- head(dplyr::rename(
@@ -41,10 +40,10 @@ cmst_default <- function(object, driver, target,
     pvalue = pv), n = 1L)
   
   # Mediation LR
-  out$mediation <- sum(comps$LR[c("t.d_t", "mediation")])
+  out$mediation <- sum(compsLR[c("t.d_t", "mediation")]) # t.md_t.m
   
   # Mediator LR
-  out$LRmed <- comps$LR["m.d_m"]
+  out$LRmed <- compsLR["m.d_m"]
   
   # Coefficients
   coef_target <- as.data.frame(t(models$coef$t.md_t.m[seq_len(ncol(driver))]))
