@@ -225,10 +225,20 @@ mediate_obj <- CausalMST::mediation_test(
 ```
 
 ```{r}
-summary(mediate_obj)
+summary(mediate_obj) %>%
+  mutate(LRmed = LRmed/log(10)) %>%
+  arrange(pos)
 ```
 
-`lod` is from `peaks` file while `LRmed` is computed on the fly. These should agree up to a constant.
+#### Check calculations
+
+```{r}
+peaks %>%
+  arrange(pos)
+```
+
+`lod` is from `peaks` file while `LRmed` is computed on the fly. These should agree up to a constant,
+unless there is issue with missing data? Need to check this.
 
 ```{r}
 ggplot(mediate_obj$best) +
@@ -236,6 +246,8 @@ ggplot(mediate_obj$best) +
   geom_point() +
   geom_abline(slope=1)
 ```
+
+#### Plots for mediation
 
 The plot uses additional information from the `annot`, particularly when using `plotly`. These include `symbol`, `pos`, `QTL` and `biotype`. These are rather arcane at the moment. To be improved.
 

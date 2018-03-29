@@ -6,8 +6,8 @@
 #' @param mediator matrix of mediators
 #' @param annotation optional annotation data frame for mediators
 #' @param driver vector or matrix with driver values
-#' @param cov_tar optional covariates for target
-#' @param cov_med optional covariates for mediator
+#' @param covar_tar optional covariates for target
+#' @param covar_med optional covariates for mediator
 #' @param kinship optional kinship matrix among individuals
 #' @param driver_med optional driver matrix for mediators
 #' @param test Type of CMST test.
@@ -30,7 +30,7 @@
 #' @export
 #'
 mediation_test <- function(target, mediator, annotation, driver,
-                          cov_tar=NULL, cov_med=NULL, kinship=NULL,
+                          covar_tar=NULL, covar_med=NULL, kinship=NULL,
                           driver_med = NULL,
                           test = c("wilcoxon","binomial","joint","normal"),
                           pos = NULL,
@@ -61,9 +61,9 @@ mediation_test <- function(target, mediator, annotation, driver,
   pos_tar <- pos
   
   # Make sure covariates are numeric
-  cov_tar <- covar_df_mx(cov_tar)
+  covar_tar <- covar_df_mx(covar_tar)
 
-  scan_max <- fitFunction(driver, target, kinship, cov_tar)
+  scan_max <- fitFunction(driver, target, kinship, covar_tar)
   LR_tar <- scan_max$LR
   
   use_1_driver <- is.null(annotation$driver) | is.null(driver_med)
@@ -71,7 +71,7 @@ mediation_test <- function(target, mediator, annotation, driver,
     driver_med <- NULL
   
   commons <- common_data(target, mediator, driver,
-                         cov_tar, NULL, kinship,
+                         covar_tar, NULL, kinship,
                          common = use_1_driver)
   if(is.null(commons))
     return(NULL)
@@ -79,15 +79,15 @@ mediation_test <- function(target, mediator, annotation, driver,
   driver <- commons$driver
   target <- commons$target
   kinship <- commons$kinship
-  cov_tar <- commons$cov_tar
+  covar_tar <- commons$covar_tar
   common <- commons$common
 
-  # Two reasons not to put cov_med in common_data call:
+  # Two reasons not to put covar_med in common_data call:
   # 1: different mediators may have different covariates
-  # 2: cov_med is data frame, so need to be careful.
-  # Fix up cov_med to match the rest
-  m <- match(rownames(driver), rownames(cov_med), nomatch = 0)
-  cov_med <- cov_med[m,, drop = FALSE]
+  # 2: covar_med is data frame, so need to be careful.
+  # Fix up covar_med to match the rest
+  m <- match(rownames(driver), rownames(covar_med), nomatch = 0)
+  covar_med <- covar_med[m,, drop = FALSE]
   
   # Reorganize annotation and mediator data.
   # Need to make sure elements of mediator have same ids.
@@ -95,13 +95,26 @@ mediation_test <- function(target, mediator, annotation, driver,
   annotation <- dplyr::filter(
     annotation,
     id %in% colnames(mediator))
+  # Make sure annotation is in same order as mediator.
+  m <- match(colnames(mediator), annotation$id)
+  if(any(is.na(m))) {
+    cat("mediator and annotation do not match\n", file = stderr())
+    return(NULL)
+  }
+  annotation <- annotation[m,]
 
   # Workhorse: CMST on each mediator.
   best <- purrr::map(
-    purrr::transpose(list(mediator = mediator,
-                          annotation = purrr::transpose(annotation))),
+    purrr::transpose(list(
+      mediator = mediator,
+      annotation = 
+        purrr::transpose(
+          # Make sure order is maintained to match mediator.
+          dplyr::mutate(
+            annotation,
+            id = factor(id, id))))),
     cmstfn, driver, target, 
-    kinship, cov_tar, cov_med,
+    kinship, covar_tar, covar_med,
     driver_med,
     fitFunction, testfn, common)
 
@@ -110,10 +123,10 @@ mediation_test <- function(target, mediator, annotation, driver,
     triad = ref)
   
   # Kludge until I figure out why last level.
-  relabel <- c("causal", "reactive", "independent", "correlated")
-  names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
-  best$triad <- factor(relabel[best$triad], relabel)
-  best$alt <- factor(relabel[best$alt], relabel)
+#  relabel <- c("causal", "reactive", "independent", "correlated")
+#  names(relabel) <- c("m.d_t.m", "t.d_m.t", "t.d_m.d", "t.md_m.d")
+#  best$triad <- factor(relabel[best$triad], relabel)
+#  best$alt <- factor(relabel[best$alt], relabel)
   
   result <- list(
     best = dplyr::arrange(

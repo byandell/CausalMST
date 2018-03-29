@@ -5,8 +5,8 @@
 \alias{plot_med_scatter}
 \title{Scatter plot for mediator and target}
 \usage{
-med_scatter(driver, target, mediator, kinship, cov_tar, cov_med, fitFunction,
-  sdp = 32, allele = TRUE)
+med_scatter(driver, target, mediator, kinship, covar_tar, covar_med,
+  fitFunction, sdp = 32, allele = TRUE)
 
 plot_med_scatter(x, ..., type = c("by_mediator", "by_target", "driver_offset",
   "driver"), tname = "target", mname = "mediator", dname = "driver",
@@ -21,9 +21,9 @@ plot_med_scatter(x, ..., type = c("by_mediator", "by_target", "driver_offset",
 
 \item{kinship}{optional kinship matrix among individuals}
 
-\item{cov_tar}{optional covariates for target}
+\item{covar_tar}{optional covariates for target}
 
-\item{cov_med}{optional covariates for mediator}
+\item{covar_med}{optional covariates for mediator}
 
 \item{fitFunction}{function to fit models with driver, target and mediator}
 

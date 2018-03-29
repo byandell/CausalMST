@@ -4,8 +4,8 @@
 \alias{mediation_test}
 \title{Develop mediation models from driver, target and mediator}
 \usage{
-mediation_test(target, mediator, annotation, driver, cov_tar = NULL,
-  cov_med = NULL, kinship = NULL, driver_med = NULL,
+mediation_test(target, mediator, annotation, driver, covar_tar = NULL,
+  covar_med = NULL, kinship = NULL, driver_med = NULL,
   test = c("wilcoxon", "binomial", "joint", "normal"), pos = NULL,
   fitFunction = fitQtl2, data_type = c("phenotype", "expression"), ...)
 }
@@ -18,9 +18,9 @@ mediation_test(target, mediator, annotation, driver, cov_tar = NULL,
 
 \item{driver}{vector or matrix with driver values}
 
-\item{cov_tar}{optional covariates for target}
+\item{covar_tar}{optional covariates for target}
 
-\item{cov_med}{optional covariates for mediator}
+\item{covar_med}{optional covariates for mediator}
 
 \item{kinship}{optional kinship matrix among individuals}
 

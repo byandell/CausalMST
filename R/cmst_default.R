@@ -40,10 +40,10 @@ cmst_default <- function(object, driver, target,
     pvalue = pv), n = 1L)
   
   # Mediation LR
-  out$mediation <- sum(compsLR[c("t.d_t", "mediation")]) # t.md_t.m
+  out$mediation <- compsLR["mediation"] # t.md_t.m
   
   # Mediator LR
-  out$LRmed <- compsLR["m.d_m"]
+  out$LRmed <- compsLR["mediator"]
   
   # Coefficients
   coef_target <- as.data.frame(t(models$coef$t.md_t.m[seq_len(ncol(driver))]))
@@ -58,15 +58,15 @@ combo_models <- function() {
       0, 5, 7,
       dimnames = list(
         c("t.d_t", "t.md_t.m", "m.d_m", "t.m_t", "m.t_m"),
-        c("t.d_m.t", "m.d_t.m", "t.d_m.d", "t.md_m.d",
-          "t.d_t", "m.d_m", "mediation")))
-  combos[c(1,5), 1] <- 1        # causal
-  combos[c(3,4), 2] <- 1        # reactive
-  combos[c(1,3), 3] <- 1        # independent
-  combos[   2:4, 4] <- 1        # correlated
-  combos[     1, 5] <- 1        # target contrast
-  combos[     3, 6] <- 1        # mediator contrast
-  combos[   1:2, 7] <- c(-1, 1) # mediation contrast
+        c("causal", "reactive", "independent", "correlated",
+          "target", "mediator", "mediation")))
+  combos[c(3,4), 1] <- 1 # causal: m.d_t.m
+  combos[c(1,5), 2] <- 1 # reactive: t.d_m.t
+  combos[c(1,3), 3] <- 1 # independent: t.d_m.d
+  combos[   2:4, 4] <- 1 # correlated: t.md_m.d
+  combos[     1, 5] <- 1 # target contrast: t.d_t
+  combos[     3, 6] <- 1 # mediator contrast: m.d_m
+  combos[     2, 7] <- 1 # mediation contrast: t.md_t.m
   as.data.frame(combos)
 }
 combine_models <- function(combos, fits) {

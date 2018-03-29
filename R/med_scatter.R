@@ -4,8 +4,8 @@
 #' @param target vector or 1-column matrix with target values
 #' @param mediator vector or 1-column matrix with mediator values
 #' @param kinship optional kinship matrix among individuals
-#' @param cov_tar optional covariates for target
-#' @param cov_med optional covariates for mediator
+#' @param covar_tar optional covariates for target
+#' @param covar_med optional covariates for mediator
 #' @param fitFunction function to fit models with driver, target and mediator
 #' @param sdp SNP distribution pattern for plot colors
 #' @param allele Driver has alleles if \code{TRUE}, otherwise allele pairs.
@@ -17,24 +17,24 @@
 #' geom_text ggplot ggtitle scale_color_discrete xlab ylab
 #' 
 med_scatter <- function(driver, target, mediator,
-                        kinship, cov_tar, cov_med, fitFunction,
+                        kinship, covar_tar, covar_med, fitFunction,
                         sdp = 32,
                         allele = TRUE) {
   
   # Make sure covariates are numeric
-  cov_tar <- covar_df_mx(cov_tar)
-  cov_med <- covar_df_mx(cov_med)
+  covar_tar <- covar_df_mx(covar_tar)
+  covar_med <- covar_df_mx(covar_med)
 
   commons <- common_data(target, mediator, driver, 
-                         cov_tar, cov_med, kinship)
+                         covar_tar, covar_med, kinship)
   
-  cov_names <- names(cov_med)[!(names(cov_med) %in% names(cov_tar))]
+  cov_names <- names(covar_med)[!(names(covar_med) %in% names(covar_tar))]
   
   for(i in c("target","mediator"))
     colnames(commons[[i]]) <- i
 
   dat <- data.frame(commons$driver, commons$target, commons$mediator,
-                    commons$cov_tar, commons$cov_med[,cov_names, drop = FALSE])
+                    commons$covar_tar, commons$covar_med[,cov_names, drop = FALSE])
   
   genos <- colnames(commons$driver)
   if(allele)
@@ -58,7 +58,7 @@ med_scatter <- function(driver, target, mediator,
   
   # Fit target and target|mediator models
   fit <- med_fits(driver, target, mediator,
-                  fitFunction, kinship, cov_tar, cov_med)
+                  fitFunction, kinship, covar_tar, covar_med)
   for(i in names(fit$coef)[1:2]) {
     tmp <- fit$coef[[i]][1:8]
     dat[[i]] <- c(as.matrix(dat[names(tmp)]) %*% tmp)
