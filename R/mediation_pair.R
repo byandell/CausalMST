@@ -1,11 +1,11 @@
 #' Scatter plot for mediator and target
 #' 
-#' @param driver vector or matrix with driver values
 #' @param target vector or 1-column matrix with target values
 #' @param mediator vector or 1-column matrix with mediator values
-#' @param kinship optional kinship matrix among individuals
+#' @param driver vector or matrix with driver values
 #' @param covar_tar optional covariates for target
 #' @param covar_med optional covariates for mediator
+#' @param kinship optional kinship matrix among individuals
 #' @param fitFunction function to fit models with driver, target and mediator
 #' @param sdp SNP distribution pattern for plot colors
 #' @param allele Driver has alleles if \code{TRUE}, otherwise allele pairs.
@@ -16,9 +16,10 @@
 #' @importFrom ggplot2 aes autoplot facet_wrap geom_hline geom_smooth 
 #' geom_text ggplot ggtitle scale_color_discrete xlab ylab
 #' 
-med_scatter <- function(driver, target, mediator,
-                        kinship, covar_tar, covar_med, fitFunction,
-                        sdp = 32,
+mediation_pair <- function(target, mediator, driver,
+                        covar_tar, covar_med, kinship, 
+                        fitFunction,
+                        sdp,
                         allele = TRUE) {
   
   # Make sure covariates are numeric
@@ -28,7 +29,7 @@ med_scatter <- function(driver, target, mediator,
   commons <- common_data(target, mediator, driver, 
                          covar_tar, covar_med, kinship)
   
-  cov_names <- names(covar_med)[!(names(covar_med) %in% names(covar_tar))]
+  cov_names <- colnames(covar_med)[!(colnames(covar_med) %in% colnames(covar_tar))]
   
   for(i in c("target","mediator"))
     colnames(commons[[i]]) <- i
@@ -64,11 +65,11 @@ med_scatter <- function(driver, target, mediator,
     dat[[i]] <- c(as.matrix(dat[names(tmp)]) %*% tmp)
   }
   
-  class(dat) <- c("med_scatter", class(dat))
+  class(dat) <- c("mediation_pair", class(dat))
   
   dat
 }
-#' @param x object of class \code{med_scatter}
+#' @param x object of class \code{mediation_pair}
 #' @param \dots additional parameters for plotting
 #' @param type type of plot: one of \code{("by_mediator", "by_target", "driver_offset", "driver")}
 #' @param tname target name (default \code{"target"})
@@ -77,9 +78,9 @@ med_scatter <- function(driver, target, mediator,
 #' @param centerline horizontal line at value (default = \code{0}); set to \code{NA} for no line or \code{NULL} for mean
 #' @param main main title (defautl \code{tname})
 #' 
-#' @rdname med_scatter
+#' @rdname mediation_pair
 #' @export
-plot_med_scatter <- function(x, ..., 
+ggplot_mediation_pair <- function(x, ..., 
                              type = c("by_mediator", "by_target", "driver_offset", "driver"),
                              tname = "target", mname = "mediator", dname = "driver",
                              centerline = 0,
@@ -141,12 +142,8 @@ plot_med_scatter <- function(x, ...,
     ggplot2::ggtitle(main)
 }
 #' @export
-autoplot.med_scatter <- function(x, ...) {
-  plot_med_scatter(x, ...)
-}
-#' @export
-plot.med_scatter <- function(x, ...) {
-  ggplot2::autoplot(x, ...)
+autoplot.mediation_pair <- function(x, ...) {
+  ggplot_mediation_pair(x, ...)
 }
 
 # from qtl2pattern

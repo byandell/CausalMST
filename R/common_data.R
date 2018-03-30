@@ -1,5 +1,5 @@
 common_data <- function(target, mediator, driver,
-                        cov_tar=NULL, cov_med=NULL, kinship=NULL,
+                        covar_tar=NULL, covar_med=NULL, kinship=NULL,
                         driver_med=NULL,
                         common = TRUE,
                         minN = 100, minCommon = 0.9) {
@@ -23,15 +23,15 @@ common_data <- function(target, mediator, driver,
   if(is.null(colnames(mediator)))
     colnames(mediator) <- "M"
 
-  if(!is.null(cov_tar)) {
-    cov_tar <- as.matrix(cov_tar)
-    if(is.null(colnames(cov_tar)))
-      colnames(cov_tar) <- paste0("covT", seq_len(ncol(cov_tar)))
+  if(!is.null(covar_tar)) {
+    covar_tar <- as.matrix(covar_tar)
+    if(is.null(colnames(covar_tar)))
+      colnames(covar_tar) <- paste0("covT", seq_len(ncol(covar_tar)))
   }
-  if(!is.null(cov_med)) {
-    cov_med <- as.matrix(cov_med)
-    if(is.null(colnames(cov_med)))
-      colnames(cov_med) <- paste0("covM", seq_len(ncol(cov_med)))
+  if(!is.null(covar_med)) {
+    covar_med <- as.matrix(covar_med)
+    if(is.null(colnames(covar_med)))
+      colnames(covar_med) <- paste0("covM", seq_len(ncol(covar_med)))
   }
   if(!is.null(driver_med)) {
     driver_med <- as.matrix(driver_med)
@@ -41,7 +41,7 @@ common_data <- function(target, mediator, driver,
   
   # Keep individuals with full records.
   ind2keep <-
-    qtl2::get_common_ids(driver, target, cov_tar, cov_med, kinship, driver_med,
+    qtl2::get_common_ids(driver, target, covar_tar, covar_med, kinship, driver_med,
                              complete.cases = TRUE)
   
   # Drop mediator columns with too few non-missing data.
@@ -77,10 +77,10 @@ common_data <- function(target, mediator, driver,
   driver <- driver[ind2keep,, drop = FALSE]
   target <- target[ind2keep,, drop = FALSE]
   mediator <- mediator[ind2keep,, drop = FALSE]
-  if(!is.null(cov_tar))
-    cov_tar <- cov_tar[ind2keep,, drop = FALSE]
-  if(!is.null(cov_med))
-    cov_med <- cov_med[ind2keep,, drop = FALSE]
+  if(!is.null(covar_tar))
+    covar_tar <- covar_tar[ind2keep,, drop = FALSE]
+  if(!is.null(covar_med))
+    covar_med <- covar_med[ind2keep,, drop = FALSE]
   if(!is.null(driver_med))
     driver_med <- driver_med[ind2keep,, drop = FALSE]
   if(!is.null(kinship)) {
@@ -93,8 +93,8 @@ common_data <- function(target, mediator, driver,
        target = target,
        mediator = mediator,
        kinship = kinship,
-       cov_tar = cov_tar,
-       cov_med = cov_med,
+       covar_tar = covar_tar,
+       covar_med = covar_med,
        driver_med = driver_med,
        common = common)
 }
