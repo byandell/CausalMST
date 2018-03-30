@@ -60,7 +60,7 @@ ggplot_mediation_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod
     
     # Set up plot symbol.
     shapes <- c(17,16,2,1)
-    names(shapes) <- c("distal", "local", "distal_QTLs", "local_QTLs")
+    names(shapes) <- c("distal", "local", "distal_info", "local_info")
     x <- dplyr::mutate(x, qtl_type = names(shapes)[1 + local + 2 * (qtl_ct > 1)])
   }
 
@@ -73,7 +73,7 @@ ggplot_mediation_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod
            pos_pvalue = {
              p <- ggplot2::ggplot(x) +
                ggplot2::aes(x=pos, y=-log10(pvalue), col=biotype) +
-               ggplot2::aes(symbol=symbol, mediation=mediation, QTL = QTL) +
+               ggplot2::aes(symbol=symbol, mediation=mediation, info = info) +
                ggplot2::facet_grid(~triad, scales = "free_x") +
                ggplot2::xlab("Position (Mbp)") +
                ggplot2::ylab("-log10 of p-value")
@@ -84,7 +84,7 @@ ggplot_mediation_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod
            pvalue_lod = {
              p <- ggplot2::ggplot(x) +
                ggplot2::aes(y=mediation, x=-log10(pvalue), col=biotype) +
-               ggplot2::aes(symbol=symbol, position=pos, QTL = QTL) +
+               ggplot2::aes(symbol=symbol, position=pos, info = info) +
                ggplot2::facet_grid(~triad, scales = "free_x") +
                ggplot2::geom_hline(yintercept = unmediated, col = "darkgrey") +
                ggplot2::xlab("-log10 of p-value") +
@@ -93,7 +93,7 @@ ggplot_mediation_test <- function(x, type = c("pos_lod","pos_pvalue","pvalue_lod
            pos_lod = {
              p <- ggplot2::ggplot(x) + 
                ggplot2::aes(y=mediation, x=pos, col=biotype) +
-               ggplot2::aes(symbol=symbol, pvalue=pvalue, QTL = QTL) +
+               ggplot2::aes(symbol=symbol, pvalue=pvalue, info = info) +
                ggplot2::geom_hline(yintercept = unmediated, col = "darkgrey") +
                ggplot2::facet_grid(~triad, scales = "free_x") +
                ggplot2::xlab("Position (Mbp)") +

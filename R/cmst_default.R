@@ -39,6 +39,9 @@ cmst_default <- function(object, driver, target,
       pv == min(pv)),
     pvalue = pv), n = 1L)
   
+  out$ref <- factor(out$ref, c("causal","reactive","independent","correlated"))
+  out$alt <- factor(out$alt, c("causal","reactive","independent","correlated"))
+  
   # Mediation LR
   out$mediation <- compsLR["mediation"] # t.md_t.m
   
