@@ -16,7 +16,7 @@
 #' @importFrom ggplot2 aes autoplot facet_wrap geom_hline geom_smooth 
 #' geom_text ggplot ggtitle scale_color_discrete xlab ylab
 #' 
-mediation_pair <- function(target, mediator, driver,
+mediation_triad <- function(target, mediator, driver,
                         covar_tar, covar_med, kinship, 
                         fitFunction,
                         sdp,
@@ -65,11 +65,11 @@ mediation_pair <- function(target, mediator, driver,
     dat[[i]] <- c(as.matrix(dat[names(tmp)]) %*% tmp)
   }
   
-  class(dat) <- c("mediation_pair", class(dat))
+  class(dat) <- c("mediation_triad", class(dat))
   
   dat
 }
-#' @param x object of class \code{mediation_pair}
+#' @param x object of class \code{mediation_triad}
 #' @param \dots additional parameters for plotting
 #' @param type type of plot: one of \code{("by_mediator", "by_target", "driver_offset", "driver")}
 #' @param tname target name (default \code{"target"})
@@ -78,9 +78,9 @@ mediation_pair <- function(target, mediator, driver,
 #' @param centerline horizontal line at value (default = \code{0}); set to \code{NA} for no line or \code{NULL} for mean
 #' @param main main title (defautl \code{tname})
 #' 
-#' @rdname mediation_pair
+#' @rdname mediation_triad
 #' @export
-ggplot_mediation_pair <- function(x, ..., 
+ggplot_mediation_triad <- function(x, ..., 
                              type = c("by_mediator", "by_target", "driver_offset", "driver"),
                              tname = "target", mname = "mediator", dname = "driver",
                              centerline = 0,
@@ -142,8 +142,8 @@ ggplot_mediation_pair <- function(x, ...,
     ggplot2::ggtitle(main)
 }
 #' @export
-autoplot.mediation_pair <- function(x, ...) {
-  ggplot_mediation_pair(x, ...)
+autoplot.mediation_triad <- function(x, ...) {
+  ggplot_mediation_triad(x, ...)
 }
 
 # from qtl2pattern
