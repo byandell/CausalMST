@@ -251,7 +251,7 @@ scat_dat <- CausalMST::mediation_triad(pheno_data,
                                       covar, 
                                       med_ls$covar,
                                       kinship[[1]], 
-                                      qtl2::fit1,
+                                      CausalMST::fitQtl2,
                                       sdp = scat_ls$sdp, 
                                       allele = TRUE)
 ```

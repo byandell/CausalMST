@@ -43,6 +43,13 @@ mediation_triad <- function(target, mediator, driver,
   else
     haplos <- unique(unlist(stringr::str_split(genos, "")))
   
+  # Would like to have option to have line per haplo.
+  # But that requires some regression style approach, such as dividing up data
+  # or fitting allele model. Guess is this would involve fitting allele model,
+  # getting estimates of slopes for each ellele interacted with mediator,
+  # creating data frame, and adding this to ggplot object.
+  # Probably signal this with sdp = NULL option?
+  
   alt <- haplos[sdp_to_logical(sdp, haplos)]
   if(allele) {
     dat$geno <- apply(round(2 * commons$driver), 1, 
