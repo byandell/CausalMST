@@ -151,6 +151,16 @@ print.cmst <- function(x, ...) {
   print(x$R2)
   invisible()
 }
+model_setup <- function() {
+  models <- dplyr::tbl_df(matrix(c(
+    "M1.y2.y1.z", "y1.z", "y2.y1",
+    "M2.y1.y2.z", "y2.z", "y1.y2",
+    "M3.y1.z.y2", "y2.z", "y1.z",
+    "M4.y12.z",   "y1.z", "y2.y1z"),
+    4, 3, byrow = TRUE))
+  names(models) <- c("model","first","second")
+  models
+}
 
 cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
                  method = c("par", "non.par", "joint", "all"),
@@ -200,11 +210,11 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
   indLR <- matrix(0, n_ind, 4)
   names(LR) <- names(model.dim) <- colnames(indLR) <- models$model
   for(i in 1:4) {
-    chain <- model_chain(ll_list[[models$first[i]]], 
-                         ll_list[[models$second[i]]])
-    LR[models$model[i]] <- chain$LR
-    model.dim[models$model[i]] <- 2 + chain$df
-    indLR[, models$model[i]] <- chain$indLR
+    fit1 <- ll_list[[models$first[i]]]
+    fit2 <- ll_list[[models$second[i]]]
+    LR[models$model[i]] <- fit1$LR + fit2$LR
+    model.dim[models$model[i]] <- 2 + fit1$df + fit2$df
+    indLR[, models$model[i]] <- fit1$indLR + fit2$indLR
   }
   
   models <- list(
@@ -259,14 +269,4 @@ cmst1 <- function(driver, outcomes, addcov=NULL, intcov=NULL,
   }, models$model)
   
   out
-}
-model_setup <- function() {
-  models <- dplyr::tbl_df(matrix(c(
-    "M1.y2.y1.z", "y1.z", "y2.y1",
-    "M2.y1.y2.z", "y2.z", "y1.y2",
-    "M3.y1.z.y2", "y2.z", "y1.z",
-    "M4.y12.z",   "y1.z", "y2.y1z"),
-    4, 3, byrow = TRUE))
-  names(models) <- c("model","first","second")
-  models
 }

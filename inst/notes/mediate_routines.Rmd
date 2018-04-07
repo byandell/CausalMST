@@ -5,9 +5,7 @@ Original routine used in vignette
 ```{r eval=FALSE}
 cmst
   cmst1
-    GetLogLik
-    logLik_calcs
-    model_chain
+    fitFunction
     calcICs
     calcZ
     normIUCMST
@@ -17,70 +15,35 @@ cmst
 ```
 
 
-Routine now used in R/qtl2shiny:
-
-```{r}
-mediate_obj <- CausalMST::mediate1_test(
-  med_ls, 
-  geno_max, 
-  pheno_data,
-  kinship[[1]],
-  covar,
-  med_ls$covar,
-  driver_med = probs_obj$probs[[chr_id]],
-  test = "wilc",
-  pos = pos_Mbp)
-
-```
-
-
-```{r}
-autoplot(mediate_obj)
-```
+Routine now used in R/qtl2shiny: `mediate1_test`
 
 ```{r eval=FALSE}
 mediate1_test
   cmst_pheno
     cmst_default
-      mediationModels
-        med_fits
-          fitFunction
-        fit_models
-          comb_models
-          combo_models
-          combo_comps
+      med_fits
+        fitFunction
+      combo_models
+      combine_models
       testFunction <- wilcIUCMST, binomIUCMST, normJointIUCMST, normIUCMST
         calcZ
           calcICs
-            penalty
         calcShat
-        corHat
         left_right
 ```
 
-Note: `fit_models` set up for 10 models and 7 comparisons. Only need 4 models and some of the comparisons, as used in `mediationModels`:
-
-```{r eval=FALSE}
-subset(models_par$models, 1:4)
-models_par$comps$LR[c("t.d_t", "mediation")]
-models_par$comp$LR["m.d_m"]
-models_par$models$coef$t.md_t.m[seq_len(ncol(driver))]
-models_par$models$coef$m.d_m[seq_len(ncol(driver))]
+```{r}
+mediation_triad
+  med_fits
+    fitFunction
+  label_fn = qtl2pattern::pattern_label
+  group_fn = qtl2pattern::pattern_sdp
 ```
-
-The `testFunction` uses various parts of the `subset(models_par$models, 1:4)`:
-
-```{r eval=FALSE}
-models$indLR)
-models$LR
-models$df
-```
-
 
 Utilities
 
 ```{r eval=FALSE}
-fitFunction <- qtl2::fit1
+fitQtl2 uses qtl2::fit1
 common_data (from qtl2pattern)
 covar_df_mx (from qtl2pattern)
 wh_sex(from qtl2pattern)
@@ -89,20 +52,25 @@ wh_sex(from qtl2pattern)
 ## Scatterplot
 
 ```{r}
-scat_ls <- qtl2pattern::pull_mediator(mediate_obj, med_ls, patterns)
+med_name <- sum_med$id[1]
+mediator <- med_ls[[1]][, med_name, drop = FALSE]
+driver_name <- (med_ls[[2]] %>% 
+  filter(id == med_name))$driver
+driver <- driver_med[,, driver_name]
 ```
 
 ```{r}
-scat_dat <- CausalMST::med_scatter(geno_max, pheno_data, 
-                                   scat_ls$mediator,
-                                   kinship[[1]], 
-                                   covar, 
-                                   med_ls$covar,
-                                   qtl2::fit1,
-                                   sdp = scat_ls$sdp, 
-                                   allele = TRUE)
+sdp <- snpprobs_obj$snpinfo$sdp[which.min(abs(snpprobs_obj$snpinfo$pos - sum_med$pos[1]))]
 ```
 
 ```{r}
-autoplot(scat_dat)
+scat_dat <- CausalMST::mediation_triad(
+  target = pheno_data, 
+  mediator = mediator,
+  driver = driver, 
+  covar_tar = covar, 
+  covar_med = med_ls$covar,
+  kinship = kinship[[1]], 
+  sdp = sdp, 
+  allele = TRUE)
 ```

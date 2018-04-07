@@ -13,15 +13,6 @@ normJointIUCMST <- function(models,
   # Expand to data frame with ref, alt, Z.
   Zscores <- left_right(Zscores)
 
-  # Compare reference model with all others and get max pvalue.
-  tmpfn <- function(alt, pair) {
-    # Goofy way to get sign right on Shat.
-    ss <- 2 * (sapply(
-      stringr::str_split(pair, ":"),
-      function(x) x[[2]]) == alt) - 1
-    corHat((ss %o% ss) * Shat[pair,pair])
-  }
-  
   dplyr::mutate(
     dplyr::ungroup(
       dplyr::summarize(
@@ -30,7 +21,19 @@ normJointIUCMST <- function(models,
                         ref = factor(ref, unique(ref))),
           ref),
         pv = as.vector(1 - mnormt::pmnorm(rep(min(Z), length(Z)),
-                                          varcov = tmpfn(alt, pair))),
+                                          varcov = corHat(alt, pair, Shat))),
         alt = alt[which.min(Z)][1])),
     ref = as.character(ref))
+}
+# Compare reference model with all others and get max pvalue.
+corHat <- function(alt, pair, Shat) {
+  # Goofy way to get sign right on Shat.
+  ss <- 2 * (sapply(
+    stringr::str_split(pair, ":"),
+    function(x) x[[2]]) == alt) - 1
+  Shat <- (ss %o% ss) * Shat[pair,pair] 
+  if (!corpcor::is.positive.definite(Shat)) {
+    Shat <- corpcor::make.positive.definite(Shat)
+  }
+  stats::cov2cor(Shat)
 }
