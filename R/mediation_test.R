@@ -4,8 +4,8 @@
 #'
 #' @param target vector or 1-column matrix with target values
 #' @param mediator matrix of mediators
-#' @param annotation optional annotation data frame for mediators
 #' @param driver vector or matrix with driver values
+#' @param annotation optional annotation data frame for mediators
 #' @param covar_tar optional covariates for target
 #' @param covar_med optional covariates for mediator
 #' @param kinship optional kinship matrix among individuals
@@ -29,7 +29,7 @@
 #'
 #' @export
 #'
-mediation_test <- function(target, mediator, annotation, driver,
+mediation_test <- function(target, mediator, driver, annotation,
                           covar_tar=NULL, covar_med=NULL, kinship=NULL,
                           driver_med = NULL,
                           test = c("wilcoxon","binomial","joint","normal"),
@@ -156,7 +156,7 @@ summary.mediation_test <- function(object, ...) {
     dplyr::mutate(
       dplyr::arrange(
         mediate_obj$best,
-        lod),
+        mediation),
       mediation = mediation / log(10),
       pvalue = signif(pvalue, 3),
       pos = round(pos, 2),

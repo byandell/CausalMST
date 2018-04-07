@@ -4,7 +4,7 @@
 \alias{mediation_test}
 \title{Develop mediation models from driver, target and mediator}
 \usage{
-mediation_test(target, mediator, annotation, driver, covar_tar = NULL,
+mediation_test(target, mediator, driver, annotation, covar_tar = NULL,
   covar_med = NULL, kinship = NULL, driver_med = NULL,
   test = c("wilcoxon", "binomial", "joint", "normal"), pos = NULL,
   fitFunction = fitQtl2, data_type = c("phenotype", "expression"), ...)
@@ -14,9 +14,9 @@ mediation_test(target, mediator, annotation, driver, covar_tar = NULL,
 
 \item{mediator}{matrix of mediators}
 
-\item{annotation}{optional annotation data frame for mediators}
-
 \item{driver}{vector or matrix with driver values}
+
+\item{annotation}{optional annotation data frame for mediators}
 
 \item{covar_tar}{optional covariates for target}
 

@@ -18,9 +18,11 @@
 #' 
 mediation_triad <- function(target, mediator, driver,
                         covar_tar, covar_med, kinship, 
-                        fitFunction,
+                        fitFunction = fitQtl2,
                         sdp,
-                        allele = TRUE) {
+                        allele = TRUE,
+                        label_fn = qtl2pattern::pattern_label,
+                        group_fn = qtl2pattern::pattern_sdp) {
   
   # Make sure covariates are numeric
   covar_tar <- covar_df_mx(covar_tar)
@@ -34,14 +36,11 @@ mediation_triad <- function(target, mediator, driver,
   for(i in c("target","mediator"))
     colnames(commons[[i]]) <- i
 
+  label <- label_fn(commons$driver, allele)
+  group <- as.character(group_fn(label, sdp, colnames(commons$driver)))
   dat <- data.frame(commons$driver, commons$target, commons$mediator,
-                    commons$covar_tar, commons$covar_med[,cov_names, drop = FALSE])
-  
-  genos <- colnames(commons$driver)
-  if(allele)
-    haplos <- genos
-  else
-    haplos <- unique(unlist(stringr::str_split(genos, "")))
+                    commons$covar_tar, commons$covar_med[,cov_names, drop = FALSE],
+                    label = label, group = group)
   
   # Would like to have option to have line per haplo.
   # But that requires some regression style approach, such as dividing up data
@@ -49,20 +48,9 @@ mediation_triad <- function(target, mediator, driver,
   # getting estimates of slopes for each ellele interacted with mediator,
   # creating data frame, and adding this to ggplot object.
   # Probably signal this with sdp = NULL option?
-  
-  alt <- haplos[sdp_to_logical(sdp, haplos)]
-  if(allele) {
-    dat$geno <- apply(round(2 * commons$driver), 1, 
-                      function(x)
-                        paste(rep(genos, x), collapse = ""))
-    dat$alt <- factor(round(2 * apply(dat[, alt, drop = FALSE], 1, sum)))
-  } else {
-    dat$geno <- apply(commons$driver, 1, 
-                      function(x) genos[which.max(x)])
-    dat$alt <- sapply(stringr::str_split(genos, ""), 
-                      function(x, alt) sum(x %in% alt), alt)
-  }
-  dat$Sex <- c("Female", "Male")[1 + dat$sex]
+
+  if(!is.null(dat$sex))
+    dat$Sex <- c("Female", "Male")[1 + dat$sex]
   
   # Fit target and target|mediator models
   fit <- med_fits(driver, target, mediator,
@@ -96,7 +84,7 @@ ggplot_mediation_triad <- function(x, ...,
   type <- match.arg(type)
   
   p <- ggplot2::ggplot(x) +
-    ggplot2::aes(label = geno, col = alt) +
+    ggplot2::aes(col = group, label = label) +
     ggplot2::scale_color_discrete(name = dname)
 
   switch(type,

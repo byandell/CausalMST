@@ -6,7 +6,9 @@
 \title{Scatter plot for mediator and target}
 \usage{
 mediation_triad(target, mediator, driver, covar_tar, covar_med, kinship,
-  fitFunction, sdp, allele = TRUE)
+  fitFunction = fitQtl2, sdp, allele = TRUE,
+  label_fn = qtl2pattern::pattern_label,
+  group_fn = qtl2pattern::pattern_sdp)
 
 ggplot_mediation_triad(x, ..., type = c("by_mediator", "by_target",
   "driver_offset", "driver"), tname = "target", mname = "mediator",
