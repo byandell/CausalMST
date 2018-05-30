@@ -1,11 +1,12 @@
 ## Mediation
 
-Original routine used in vignette
+Original routine used in vignette. Want to move most of this to using `cmst_default`.
 
 ```{r eval=FALSE}
 cmst
   cmst1
     fitFunction
+    model_setup
     calcICs
     calcZ
     normIUCMST
@@ -18,7 +19,7 @@ cmst
 Routine now used in R/qtl2shiny: `mediate1_test`
 
 ```{r eval=FALSE}
-mediate1_test
+mediation_test
   cmst_pheno
     cmst_default
       med_fits

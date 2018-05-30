@@ -10,7 +10,7 @@ Depends:
 Imports:
     dplyr,purrr,tidyr,stringr,ggplot2,grid,
     RColorBrewer,
-    qtl2
+    qtl2,corpcor
 Suggests:
     qtl
 LazyLoad: yes
